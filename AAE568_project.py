@@ -5,7 +5,7 @@ AAE568_project.py: implementing project
 """
 
 # Imports
-from run_sim import run_two_plane_sim
+from run_sim import run_uav_sim
 from sim_cmds import SimCmds 
 from saturate_cmds import SaturateCmds
 
@@ -31,7 +31,7 @@ num_runs = 15
 for i in range(num_runs):
     print("----------------------------------")
     print("Simulation number: ", i)
-    metric = run_two_plane_sim(t_span, sim_opt)
+    metric = run_uav_sim(t_span, sim_opt)
     sum += metric
 
 print(sum / num_runs)
