@@ -1,6 +1,6 @@
 """
 AAE568_project.py: implementing project
-    - Author: Vishnu Vijay
+    - Author: Vishnu Vijay AND ME
     - Created: 4/23/23
 """
 
@@ -27,7 +27,7 @@ t_span = (0, 40)
 
 # Sim
 sum = 0
-num_runs = 15
+num_runs = 1
 for i in range(num_runs):
     print("----------------------------------")
     print("Simulation number: ", i)
