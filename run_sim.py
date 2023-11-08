@@ -31,7 +31,7 @@ from sim_cmds import SimCmds
 #
 #####
 
-def run_two_plane_sim(t_span, sim_options : SimCmds):
+def run_uav_sim(t_span, sim_options : SimCmds):
     # Create instance of MAV_Dynamics
     Ts = 0.01
     chaser_dynamics = MAV_Dynamics(time_step=Ts) # time step in seconds
