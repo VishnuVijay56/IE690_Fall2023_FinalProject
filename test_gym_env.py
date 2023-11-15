@@ -7,7 +7,7 @@ sim_opt = SimCmds()
 sim_opt.view_sim = False
 sim_opt.sim_real_time = False
 sim_opt.display_graphs = False
-sim_opt.use_kf = True
+sim_opt.use_kf = False
 sim_opt.wind_gust = False
 
 env = UAVStallEnv(sim_opt)
