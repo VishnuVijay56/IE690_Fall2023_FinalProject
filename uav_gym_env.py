@@ -72,6 +72,7 @@ class UAVStallEnv(gym.Env):
         # Create instance of wind simulation
         self.wind_sim = WindSimulation(self.Ts, sim_options.steady_state_wind, sim_options.wind_gust)
 
+        # TODO: Call the reset function to randomize initial state
 
     # Reset environment to initial state
     # Returns: observation of environment corresponding to initial state
