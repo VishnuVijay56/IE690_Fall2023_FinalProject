@@ -74,21 +74,31 @@ class UAVStallEnv(gym.Env):
 
         # TODO: Call the reset function to randomize initial state
 
-    # Reset environment to initial state
+    # Reset environment to a random initial state
+    # Argument: None
     # Returns: observation of environment corresponding to initial state
     def reset(self):
+        new_state = self.random_init_state()
 
-        self.random_init_state()
+        self.mav_dynamics.mav_state = new_state
+        self.mav_state = new_state
+
         return self.mav_state.get_12D_state()
     
 
+    # Generates a random initial state according to initial conditions
+    # from Bohn, 2019 paper
+    # Argument: None
+    # Returns: a new MAV_State() message
     def random_init_state(self):
         phi = 300 * np.random.rand(1) - 150
         theta = 90 * np.random.rand(1) - 45
         psi = 120 * np.random.rand(1) - 60
+
         p = 120 * np.random.rand(1) - 60
         q = 120 * np.random.rand(1) - 60
         r = 120 * np.random.rand(1) - 60
+        
         alpha = 52 * np.random.rand(1) - 26
         beta = 52 * np.random.rand(1) - 26
         Va = 18 * np.random.rand(1) + 12
@@ -97,17 +107,16 @@ class UAVStallEnv(gym.Env):
         new_state.alpha = alpha
         new_state.beta = beta
 
-        self.mav_dynamics.mav_state = new_state
-        self.mav_state = new_state
+        return new_state
 
 
 
     # Move agent based on passed action
+    # Argument: Action (list of (E, A, R, T))
     # Returns: Observation (states), 
     #          Reward (negative current cost?),
     #          Done (whether episode has terminated),
     #          Info (anything else about the environment) 
-    # Action: (Elevator, Aileron, Rudder, Throttle)
     def step(self, action):
         # Intializations
         is_done = False
@@ -161,6 +170,11 @@ class UAVStallEnv(gym.Env):
         return self.mav_state.get_12D_state(), reward, is_done, failure_flag
 
 
+    # Assigns a reward to a state action pair
+    # Functions taken from Bohn, 2019
+    # Argument: 12D State of the UAV,
+    #           Action to be taken by the UAV
+    # Return: Sum of negative cost of roll, pitch, velocity, and actuator command
     def cost_function(self, state : MAV_State, action : np.array):
         r_phi = saturate(abs(state.phi - self.target_mean[6]) / 3.3, 0, 0.3)
 
@@ -179,6 +193,9 @@ class UAVStallEnv(gym.Env):
         return total_reward
 
 
+    # Computes sum of the absolute differences between consecutive elements of a set
+    # Argument: A list of past 6 actions taken by UAV for a specific acuator
+    # Return: Sum of differences
     def command_cost(self, set_of_actions : np.array):
         sum_diff = 0
         for i in range(len(set_of_actions) - 1):
