@@ -76,8 +76,30 @@ class UAVStallEnv(gym.Env):
     # Reset environment to initial state
     # Returns: observation of environment corresponding to initial state
     def reset(self):
-        return None
+
+        self.random_init_state()
+        return self.mav_state.get_12D_state()
     
+
+    def random_init_state(self):
+        phi = 300 * np.random.rand(1) - 150
+        theta = 90 * np.random.rand(1) - 45
+        psi = 120 * np.random.rand(1) - 60
+        p = 120 * np.random.rand(1) - 60
+        q = 120 * np.random.rand(1) - 60
+        r = 120 * np.random.rand(1) - 60
+        alpha = 52 * np.random.rand(1) - 26
+        beta = 52 * np.random.rand(1) - 26
+        Va = 18 * np.random.rand(1) + 12
+        
+        new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
+        new_state.alpha = alpha
+        new_state.beta = beta
+
+        self.mav_dynamics.mav_state = new_state
+        self.mav_state = new_state
+
+
 
     # Move agent based on passed action
     # Returns: Observation (states), 
