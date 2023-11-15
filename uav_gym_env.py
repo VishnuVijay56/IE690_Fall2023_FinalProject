@@ -30,11 +30,12 @@ class UAVStallEnv(gym.Env):
 
         # 12-D Observation Space
         # (North, East, Alt, u, v, w, Phi, Theta, Psi, P, Q, R)
-        observation_low = -np.array([np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.pi, np.pi, np.pi, np.inf, np.inf, np.inf]).reshape((12, 1)) #TODO: Assign Values
-        observation_high = np.array([np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.pi, np.pi, np.pi, np.inf, np.inf, np.inf]).reshape((12, 1)) #TODO: Assign Values
+        max_val = np.inf
+        observation_low = -np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).reshape((12, 1)) #TODO: Assign Values
+        observation_high = np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).reshape((12, 1)) #TODO: Assign Values
         self.observation_space = gym.spaces.Box(low = observation_low,
                                                 high = observation_high,
-                                                dtype = np.float32)
+                                                dtype = np.float64)
 
         # 4-D Action Space
         # E, A, R, T
@@ -42,7 +43,7 @@ class UAVStallEnv(gym.Env):
         action_high = np.array([1, 1, 1, 1]).reshape((4, 1))
         self.action_space = gym.spaces.Box(low = action_low,
                                            high = action_high, 
-                                           dtype = np.float32)
+                                           dtype = np.float64)
         running_avg_size = 5
         self.actions_E = np.zeros((running_avg_size))
         self.actions_A = np.zeros((running_avg_size))
@@ -75,15 +76,20 @@ class UAVStallEnv(gym.Env):
         # TODO: Call the reset function to randomize initial state
 
     # Reset environment to a random initial state
-    # Argument: None
+    # Argument: Seed
     # Returns: observation of environment corresponding to initial state
-    def reset(self):
+    def reset(self, seed=None):
+        np.random.seed(seed) # Seed initial conditions
+
         new_state = self.random_init_state()
 
         self.mav_dynamics.mav_state = new_state
         self.mav_state = new_state
 
-        return self.mav_state.get_12D_state()
+        obs = self.mav_state.get_12D_state()
+        info = {} # TODO: Change to output useful info
+
+        return (obs, info)
     
 
     # Generates a random initial state according to initial conditions
