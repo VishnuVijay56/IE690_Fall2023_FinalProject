@@ -6,7 +6,7 @@ uav_gym_env.py: AI Gym
 
 # Library Imports
 import numpy as np
-import gym
+import gymnasium as gym
 
 # User-Defined Imports : non-message
 from mav import MAV
@@ -30,8 +30,8 @@ class UAVStallEnv(gym.Env):
 
         # 12-D Observation Space
         # (North, East, Alt, u, v, w, Phi, Theta, Psi, P, Q, R)
-        observation_low = np.array([]).reshape((12, 1)) #TODO: Assign Values
-        observation_high = np.array([]).reshape((12, 1)) #TODO: Assign Values
+        observation_low = -np.array([np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.pi, np.pi, np.pi, np.pi, np.inf, np.inf, np.inf]).reshape((12, 1)) #TODO: Assign Values
+        observation_high = np.array([np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.pi, np.pi, np.pi, np.pi, np.inf, np.inf, np.inf]).reshape((12, 1)) #TODO: Assign Values
         self.observation_space = gym.spaces.Box(low = observation_low,
                                                 high = observation_high,
                                                 dtype = np.float32)
