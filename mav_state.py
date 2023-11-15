@@ -77,11 +77,11 @@ class MAV_State:
         #chi_c = wrap(cmd.course_command, self.chi)
         #err_chi = self.saturate(self.chi - chi_c, -np.radians(15), np.radians(15))
 
-        x_lat = np.array([[float(self.Va * np.sin(self.beta))], 
-                          [float(self.p)],
-                          [float(self.r)],
-                          [float(self.phi)],
-                          [float(self.chi)]])
+        x_lat = np.array([[float(self.Va * np.sin(self.beta))], # v
+                          [float(self.p)], # p
+                          [float(self.r)], # r
+                          [float(self.phi)], # phi
+                          [float(self.chi)]]) # chi
         return x_lat
 
     
@@ -100,7 +100,25 @@ class MAV_State:
                           [float(self.altitude)]]) # alt
         return x_lon
 
+    
+    def get_12D_state(self):
+        # North, East, Alt, u, v, w, Phi, Theta, Chi, P, Q, R
+        this_state = np.array([[float(self.north)],
+                               [float(self.east)],
+                               [float(self.altitude)],
+                               [float(self.Va * np.cos(self.alpha))],
+                               [float(self.Va * np.sin(self.beta))],
+                               [float(self.Va * np.sin(self.alpha))],
+                               [float(self.phi)],
+                               [float(self.theta)],
+                               [float(self.chi)],
+                               [float(self.p)],
+                               [float(self.q)],
+                               [float(self.r)]])
 
+        return this_state
+    
+    
     def set_initial_cond(self, x_lon, x_lat):
         # Velocity
         self.Va = np.sqrt(x_lon.item(0)**2 + x_lon.item(1)**2 + x_lat.item(0)**2)
