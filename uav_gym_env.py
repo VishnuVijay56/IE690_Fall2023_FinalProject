@@ -35,7 +35,7 @@ class UAVStallEnv(gym.Env):
         observation_high = np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).flatten() #TODO: Assign Values
         self.observation_space = gym.spaces.Box(low = observation_low,
                                                 high = observation_high,
-                                                dtype = np.float64)
+                                                dtype = np.float32)
 
         # 4-D Action Space
         # E, A, R, T
@@ -89,7 +89,7 @@ class UAVStallEnv(gym.Env):
         self.mav_dynamics.mav_state = new_state
         self.mav_state = new_state
 
-        obs = self.mav_state.get_12D_state().flatten()
+        obs = self.mav_state.get_12D_state().astype(np.float32).flatten()
         info = {} # TODO: Change to output useful info
 
         return (obs, info)
