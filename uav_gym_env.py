@@ -208,7 +208,7 @@ class UAVStallEnv(gym.Env):
 
         total_reward = -(r_phi + r_theta + r_Va + r_delta)
 
-        return total_reward[0]
+        return total_reward
 
 
     # Computes sum of the absolute differences between consecutive elements of a set
