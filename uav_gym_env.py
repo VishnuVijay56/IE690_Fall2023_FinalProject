@@ -31,16 +31,16 @@ class UAVStallEnv(gym.Env):
         # 12-D Observation Space
         # (North, East, Alt, u, v, w, Phi, Theta, Psi, P, Q, R)
         max_val = np.inf
-        observation_low = -np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]) # .reshape((12, 1)) #TODO: Assign Values
-        observation_high = np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]) # .reshape((12, 1)) #TODO: Assign Values
+        observation_low = -np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).flatten() #TODO: Assign Values
+        observation_high = np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).flatten() #TODO: Assign Values
         self.observation_space = gym.spaces.Box(low = observation_low,
                                                 high = observation_high,
                                                 dtype = np.float32)
 
         # 4-D Action Space
         # E, A, R, T
-        action_low = np.array([-1, -1, -1, 0]) # .reshape((4, 1))
-        action_high = np.array([1, 1, 1, 1]) # .reshape((4, 1))
+        action_low = np.array([-1, -1, -1, -1]).flatten()
+        action_high = np.array([1, 1, 1, 1]).flatten()
         self.action_space = gym.spaces.Box(low = action_low,
                                            high = action_high, 
                                            dtype = np.float32)
@@ -52,8 +52,8 @@ class UAVStallEnv(gym.Env):
 
         # Define Target Set
         #TODO: Make sure these are defined properly
-        self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]) # .reshape((12, 1))
-        self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]) # .reshape((12, 1))
+        self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]).flatten()
+        self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]).flatten()
         self.target_mean = (self.target_low + self.target_high) / 2
 
         # Options
@@ -74,6 +74,7 @@ class UAVStallEnv(gym.Env):
         self.wind_sim = WindSimulation(self.Ts, sim_options.steady_state_wind, sim_options.wind_gust)
 
         # TODO: Call the reset function to randomize initial state
+        self.mav_model.mav_state = self.random_init_state()
 
     # Reset environment to a random initial state
     # Argument: Seed
@@ -97,16 +98,16 @@ class UAVStallEnv(gym.Env):
     # Argument: None
     # Returns: a new MAV_State() message
     def random_init_state(self):
-        phi = 300 * np.random.rand(1) - 150
-        theta = 90 * np.random.rand(1) - 45
-        psi = 120 * np.random.rand(1) - 60
+        phi = np.deg2rad(300 * np.random.rand(1) - 150)
+        theta = np.deg2rad(90 * np.random.rand(1) - 45)
+        psi = np.deg2rad(120 * np.random.rand(1) - 60)
 
-        p = 120 * np.random.rand(1) - 60
-        q = 120 * np.random.rand(1) - 60
-        r = 120 * np.random.rand(1) - 60
+        p = np.deg2rad(120 * np.random.rand(1) - 60)
+        q = np.deg2rad(120 * np.random.rand(1) - 60)
+        r = np.deg2rad(120 * np.random.rand(1) - 60)
         
-        alpha = 52 * np.random.rand(1) - 26
-        beta = 52 * np.random.rand(1) - 26
+        alpha = np.deg2rad(52 * np.random.rand(1) - 26)
+        beta = np.deg2rad(52 * np.random.rand(1) - 26)
         Va = 18 * np.random.rand(1) + 12
         
         new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
@@ -124,6 +125,7 @@ class UAVStallEnv(gym.Env):
     #          Done (whether episode has terminated),
     #          Info (anything else about the environment) 
     def step(self, action):
+        print("  ---> IM STEPPIN HERE!")
         # Intializations
         is_done = False
         failure_flag = 0
@@ -132,10 +134,10 @@ class UAVStallEnv(gym.Env):
         curr_state = self.mav_dynamics.mav_state
 
         # Add action to queue
-        self.actions_E = np.concatenate(np.delete(self.actions_E, 0), np.array(action[0]))
-        self.actions_A = np.concatenate(np.delete(self.actions_A, 0), np.array(action[1]))
-        self.actions_R = np.concatenate(np.delete(self.actions_R, 0), np.array(action[2]))
-        self.actions_T = np.concatenate(np.delete(self.actions_T, 0), np.array(action[3]))
+        self.actions_E = np.hstack((np.delete(self.actions_E, 0), np.array(action[0])))
+        self.actions_A = np.hstack((np.delete(self.actions_A, 0), np.array(action[1])))
+        self.actions_R = np.hstack((np.delete(self.actions_R, 0), np.array(action[2])))
+        self.actions_T = np.hstack((np.delete(self.actions_T, 0), np.array(action[3])))
 
         # Wind
         wind_steady_gust = np.zeros((6,1))
@@ -146,7 +148,7 @@ class UAVStallEnv(gym.Env):
         mav_delta = Delta_State(action[0] * np.radians(30), 
                                 action[1] * np.radians(30), 
                                 action[2] * np.radians(30), 
-                                action[3])
+                                (action[3] + 1) * 0.5)
 
         # Dynamics
         self.mav_dynamics.iterate(mav_delta, wind_steady_gust)
@@ -173,7 +175,7 @@ class UAVStallEnv(gym.Env):
             failure_flag = 1
         # elif () # Reached target
 
-        return self.mav_state.get_12D_state().astype(np.float32).flatten(), reward, is_done, failure_flag
+        return self.mav_state.get_12D_state().flatten(), reward, is_done, failure_flag
 
 
     # Assigns a reward to a state action pair
@@ -186,7 +188,7 @@ class UAVStallEnv(gym.Env):
 
         r_theta = saturate(abs(state.theta - self.target_mean[7]) / 2.25, 0, 0.3)
 
-        desired_Va = np.sqrt((self.target_mean[3])**2 + (self.target_mean[4])**2 (self.target_mean[5])**2)
+        desired_Va = np.sqrt((self.target_mean[3])**2 + (self.target_mean[4])**2 + (self.target_mean[5])**2)
         r_Va = saturate(abs(state.Va - desired_Va), 0, 0.3)
 
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
