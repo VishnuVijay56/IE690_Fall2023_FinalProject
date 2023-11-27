@@ -114,7 +114,7 @@ class MAV_State:
                                [float(self.chi)],
                                [float(self.p)],
                                [float(self.q)],
-                               [float(self.r)]])
+                               [float(self.r)]], dtype=np.float32)
 
         return this_state
     

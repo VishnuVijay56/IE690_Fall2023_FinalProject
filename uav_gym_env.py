@@ -74,12 +74,14 @@ class UAVStallEnv(gym.Env):
         self.wind_sim = WindSimulation(self.Ts, sim_options.steady_state_wind, sim_options.wind_gust)
 
         # TODO: Call the reset function to randomize initial state
-        self.mav_model.mav_state = self.random_init_state()
+        self.reset()
 
     # Reset environment to a random initial state
     # Argument: Seed
     # Returns: observation of environment corresponding to initial state
     def reset(self, seed=None):
+        # print("RESETTING")
+
         np.random.seed(seed) # Seed initial conditions
 
         new_state = self.random_init_state()
@@ -98,17 +100,17 @@ class UAVStallEnv(gym.Env):
     # Argument: None
     # Returns: a new MAV_State() message
     def random_init_state(self):
-        phi = np.deg2rad(300 * np.random.rand(1) - 150)
-        theta = np.deg2rad(90 * np.random.rand(1) - 45)
-        psi = np.deg2rad(120 * np.random.rand(1) - 60)
+        phi = np.deg2rad(300 * np.random.rand() - 150)
+        theta = np.deg2rad(90 * np.random.rand() - 45)
+        psi = np.deg2rad(120 * np.random.rand() - 60)
 
-        p = np.deg2rad(120 * np.random.rand(1) - 60)
-        q = np.deg2rad(120 * np.random.rand(1) - 60)
-        r = np.deg2rad(120 * np.random.rand(1) - 60)
+        p = np.deg2rad(120 * np.random.rand() - 60)
+        q = np.deg2rad(120 * np.random.rand() - 60)
+        r = np.deg2rad(120 * np.random.rand() - 60)
         
-        alpha = np.deg2rad(52 * np.random.rand(1) - 26)
-        beta = np.deg2rad(52 * np.random.rand(1) - 26)
-        Va = 18 * np.random.rand(1) + 12
+        alpha = np.deg2rad(52 * np.random.rand() - 26)
+        beta = np.deg2rad(52 * np.random.rand() - 26)
+        Va = 18 * np.random.rand() + 12
         
         new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
         new_state.alpha = alpha
@@ -125,9 +127,11 @@ class UAVStallEnv(gym.Env):
     #          Done (whether episode has terminated),
     #          Info (anything else about the environment) 
     def step(self, action):
-        print("  ---> IM STEPPIN HERE!")
+        # print("  ---> IM STEPPIN HERE!")
+
         # Intializations
         is_done = False
+        is_truncated = False
         failure_flag = 0
 
         # Initial state (before action)
@@ -175,7 +179,7 @@ class UAVStallEnv(gym.Env):
             failure_flag = 1
         # elif () # Reached target
 
-        return self.mav_state.get_12D_state().flatten(), reward, is_done, failure_flag
+        return self.mav_state.get_12D_state().flatten(), reward, is_done, is_truncated, {"Flags":failure_flag}
 
 
     # Assigns a reward to a state action pair
@@ -184,12 +188,12 @@ class UAVStallEnv(gym.Env):
     #           Action to be taken by the UAV
     # Return: Sum of negative cost of roll, pitch, velocity, and actuator command
     def cost_function(self, state : MAV_State, action : np.array):
-        r_phi = saturate(abs(state.phi - self.target_mean[6]) / 3.3, 0, 0.3)
+        r_phi = saturate(abs(state.phi[0] - self.target_mean[6]) / 3.3, 0, 0.3)
 
-        r_theta = saturate(abs(state.theta - self.target_mean[7]) / 2.25, 0, 0.3)
+        r_theta = saturate(abs(state.theta[0] - self.target_mean[7]) / 2.25, 0, 0.3)
 
         desired_Va = np.sqrt((self.target_mean[3])**2 + (self.target_mean[4])**2 + (self.target_mean[5])**2)
-        r_Va = saturate(abs(state.Va - desired_Va), 0, 0.3)
+        r_Va = saturate(abs(state.Va[0] - desired_Va), 0, 0.3)
 
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
                         self.command_cost(self.actions_R) + self.command_cost(self.actions_T)
