@@ -133,13 +133,13 @@ def run_uav_sim(t_span, sim_options : SimCmds):
     
     # Faults
     case = 2
-    if (case == 0):
+    if (case == 0):  # No fault
         fault_time = end_time
         switching_delay = end_time
-    elif (case == 1): # throttle
+    elif (case == 1):  # throttle
         fault_time = 6
         switching_delay = 3
-    elif (case == 2): # elevator
+    elif (case == 2):  # elevator
         fault_time = 1
         switching_delay = 30
     
@@ -253,18 +253,6 @@ def run_uav_sim(t_span, sim_options : SimCmds):
 
     if (case == 0):
         print("Simulation Time: ", time.time() - sim_start)
-
-
-    ## Glide Path Angle Calculations
-    if (case != 0):
-        final_coord = (chaser_state.north, chaser_state.east, chaser_state.altitude)
-        alt_diff = fault_coord[2] - final_coord[2]
-        ground_dist = np.sqrt(np.power(fault_coord[0] - final_coord[0], 2) + np.power(fault_coord[1] - final_coord[1], 2))
-        glide_angle = np.arctan2(alt_diff, ground_dist)
-        #print("Fault: ", fault_coord, " --> ", final_coord)
-        print("\nGLIDE ANGLE (deg): ", round(np.rad2deg(glide_angle), 5))
-        print()
-        return glide_angle
     
 
     if (sim_options.display_graphs):
@@ -335,6 +323,16 @@ def run_uav_sim(t_span, sim_options : SimCmds):
 
         # Show plots
         plt.show()
+
+    if (case != 0):
+        final_coord = (chaser_state.north, chaser_state.east, chaser_state.altitude)
+        alt_diff = fault_coord[2] - final_coord[2]
+        ground_dist = np.sqrt(np.power(fault_coord[0] - final_coord[0], 2) + np.power(fault_coord[1] - final_coord[1], 2))
+        glide_angle = np.arctan2(alt_diff, ground_dist)
+        #print("Fault: ", fault_coord, " --> ", final_coord)
+        print("\nGLIDE ANGLE (deg): ", round(np.rad2deg(glide_angle), 5))
+        print()
+        return glide_angle
 
 
 def set_axes_equal(ax):
