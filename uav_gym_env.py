@@ -98,17 +98,17 @@ class UAVStallEnv(gym.Env):
     # Argument: None
     # Returns: a new MAV_State() message
     def random_init_state(self):
-        phi = np.deg2rad(300 * np.random.rand(1) - 150)
-        theta = np.deg2rad(90 * np.random.rand(1) - 45)
-        psi = np.deg2rad(120 * np.random.rand(1) - 60)
+        phi = np.deg2rad(300 * np.random.rand() - 150)
+        theta = np.deg2rad(90 * np.random.rand() - 45)
+        psi = np.deg2rad(120 * np.random.rand() - 60)
 
-        p = np.deg2rad(120 * np.random.rand(1) - 60)
-        q = np.deg2rad(120 * np.random.rand(1) - 60)
-        r = np.deg2rad(120 * np.random.rand(1) - 60)
+        p = np.deg2rad(120 * np.random.rand() - 60)
+        q = np.deg2rad(120 * np.random.rand() - 60)
+        r = np.deg2rad(120 * np.random.rand() - 60)
         
-        alpha = np.deg2rad(52 * np.random.rand(1) - 26)
-        beta = np.deg2rad(52 * np.random.rand(1) - 26)
-        Va = 18 * np.random.rand(1) + 12
+        alpha = np.deg2rad(52 * np.random.rand() - 26)
+        beta = np.deg2rad(52 * np.random.rand() - 26)
+        Va = 18 * np.random.rand() + 12
         
         new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
         new_state.alpha = alpha
@@ -175,7 +175,7 @@ class UAVStallEnv(gym.Env):
             failure_flag = 1
         # elif () # Reached target
 
-        return self.mav_state.get_12D_state().flatten(), reward, is_done, failure_flag
+        return self.mav_state.get_12D_state().flatten().astype(np.float32), reward, is_done, False, {"Flags":failure_flag}
 
 
     # Assigns a reward to a state action pair
@@ -198,7 +198,7 @@ class UAVStallEnv(gym.Env):
 
         total_reward = -(r_phi + r_theta + r_Va + r_delta)
 
-        return total_reward
+        return total_reward[0]
 
 
     # Computes sum of the absolute differences between consecutive elements of a set
