@@ -31,19 +31,19 @@ class UAVStallEnv(gym.Env):
         # 12-D Observation Space
         # (North, East, Alt, u, v, w, Phi, Theta, Psi, P, Q, R)
         max_val = np.inf
-        observation_low = -np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).reshape((12, 1)) #TODO: Assign Values
-        observation_high = np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]).reshape((12, 1)) #TODO: Assign Values
+        observation_low = -np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]) # .reshape((12, 1)) #TODO: Assign Values
+        observation_high = np.array([max_val, max_val, max_val, max_val, max_val, max_val, np.pi, np.pi, np.pi, max_val, max_val, max_val]) # .reshape((12, 1)) #TODO: Assign Values
         self.observation_space = gym.spaces.Box(low = observation_low,
                                                 high = observation_high,
-                                                dtype = np.float64)
+                                                dtype = np.float32)
 
         # 4-D Action Space
         # E, A, R, T
-        action_low = np.array([-1, -1, -1, 0]).reshape((4, 1))
-        action_high = np.array([1, 1, 1, 1]).reshape((4, 1))
+        action_low = np.array([-1, -1, -1, 0]) # .reshape((4, 1))
+        action_high = np.array([1, 1, 1, 1]) # .reshape((4, 1))
         self.action_space = gym.spaces.Box(low = action_low,
                                            high = action_high, 
-                                           dtype = np.float64)
+                                           dtype = np.float32)
         running_avg_size = 5
         self.actions_E = np.zeros((running_avg_size))
         self.actions_A = np.zeros((running_avg_size))
@@ -52,8 +52,8 @@ class UAVStallEnv(gym.Env):
 
         # Define Target Set
         #TODO: Make sure these are defined properly
-        self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]).reshape((12, 1))
-        self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]).reshape((12, 1))
+        self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]) # .reshape((12, 1))
+        self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]) # .reshape((12, 1))
         self.target_mean = (self.target_low + self.target_high) / 2
 
         # Options
@@ -86,7 +86,7 @@ class UAVStallEnv(gym.Env):
         self.mav_dynamics.mav_state = new_state
         self.mav_state = new_state
 
-        obs = self.mav_state.get_12D_state()
+        obs = self.mav_state.get_12D_state().astype(np.float32).flatten()
         info = {} # TODO: Change to output useful info
 
         return (obs, info)
@@ -173,7 +173,7 @@ class UAVStallEnv(gym.Env):
             failure_flag = 1
         # elif () # Reached target
 
-        return self.mav_state.get_12D_state(), reward, is_done, failure_flag
+        return self.mav_state.get_12D_state().astype(np.float32).flatten(), reward, is_done, failure_flag
 
 
     # Assigns a reward to a state action pair
