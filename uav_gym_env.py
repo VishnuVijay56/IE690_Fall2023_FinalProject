@@ -73,6 +73,10 @@ class UAVStallEnv(gym.Env):
         # Create instance of wind simulation
         self.wind_sim = WindSimulation(self.Ts, sim_options.steady_state_wind, sim_options.wind_gust)
 
+        # Create State and Action History Matrix
+        self.state_history = np.zeros((12, round(self.end_time / self.Ts)))
+        self.action_history = np.zeros((4, round(self.end_time / self.Ts)))
+
         # TODO: Call the reset function to randomize initial state
         self.reset()
 
@@ -91,6 +95,10 @@ class UAVStallEnv(gym.Env):
 
         obs = self.mav_state.get_12D_state().astype(np.float32).flatten()
         info = {} # TODO: Change to output useful info
+
+        self.state_history = np.zeros((12, round(self.end_time / self.Ts)))
+        self.action_history = np.zeros((4, round(self.end_time / self.Ts)))
+        self.state_history[:, 0] = obs
 
         return (obs, info)
     
@@ -221,3 +229,17 @@ class UAVStallEnv(gym.Env):
             sum_diff += diff
         
         return sum_diff
+
+
+    def evaluate_model(self):
+        evaluated_success = eval_success()
+
+        evaluated_rise_time = eval_rise_time()
+
+        evaluated_settling_time = eval_settling_time()
+
+        evaluated_overshoot = eval_overshoot()
+
+        evaluated_control_variation = eval_control_variation()
+
+    
