@@ -52,9 +52,10 @@ class UAVStallEnv(gym.Env):
 
         # Define Target Set
         #TODO: Make sure these are defined properly
-        self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]).flatten()
-        self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]).flatten()
-        self.target_mean = (self.target_low + self.target_high) / 2
+        # self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]).flatten()
+        # self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]).flatten()
+        # self.target_mean = (self.target_low + self.target_high) / 2
+        self.target_state = MAV_State().get_12D_state()
 
         # Options
         self.sim_options = sim_options
@@ -88,14 +89,22 @@ class UAVStallEnv(gym.Env):
 
         np.random.seed(seed) # Seed initial conditions
 
+        # Get random initial and target state
         new_state = self.random_init_state()
+        new_target = self.random_target_state()
 
+        # Reset MAV dynamical state
         self.mav_dynamics.mav_state = new_state
         self.mav_state = new_state
 
+        # Reset target state
+        self.target_state = new_target.get_12D_state().astype(np.float32).flatten()
+
+        # Set return vars
         obs = self.mav_state.get_12D_state().astype(np.float32).flatten()
         info = {} # TODO: Change to output useful info
 
+        # Zero the episode history, set initial state
         self.state_history = np.zeros((12, round(self.end_time / self.Ts)))
         self.action_history = np.zeros((4, round(self.end_time / self.Ts)))
         self.state_history[:, 0] = obs
@@ -111,13 +120,7 @@ class UAVStallEnv(gym.Env):
         phi = np.deg2rad(300 * np.random.rand() - 150)
         theta = np.deg2rad(90 * np.random.rand() - 45)
         psi = np.deg2rad(120 * np.random.rand() - 60)
-        phi = np.deg2rad(300 * np.random.rand() - 150)
-        theta = np.deg2rad(90 * np.random.rand() - 45)
-        psi = np.deg2rad(120 * np.random.rand() - 60)
-
-        p = np.deg2rad(120 * np.random.rand() - 60)
-        q = np.deg2rad(120 * np.random.rand() - 60)
-        r = np.deg2rad(120 * np.random.rand() - 60)
+        
         p = np.deg2rad(120 * np.random.rand() - 60)
         q = np.deg2rad(120 * np.random.rand() - 60)
         r = np.deg2rad(120 * np.random.rand() - 60)
@@ -131,6 +134,23 @@ class UAVStallEnv(gym.Env):
         new_state.beta = beta
 
         return new_state
+
+
+    # Generates a random target state according to initial conditions
+    # from Bohn, 2019 paper
+    # Argument: None
+    # Returns: a new MAV_State() message
+    def random_target_state(self):
+        phi = np.deg2rad(300 * np.random.rand() - 150)
+        theta = np.deg2rad(90 * np.random.rand() - 45)
+        Va = 18 * np.random.rand() + 12
+
+        new_target = MAV_State()
+        new_target.phi = phi
+        new_target.theta = theta
+        new_target.Va = Va
+
+        return new_target
 
 
 
@@ -235,41 +255,58 @@ class UAVStallEnv(gym.Env):
     # -> Success/ Failure
     # -> Rise Time
     # -> Settling Time
+    # -> Percent Overshoot
+    # -> Control Variation
+    # Argument: None
+    # Return: Tuple of evaluated criteria
     def evaluate_model(self):
+        # Evaluate our criteria
         evaluated_success = self.eval_success()
-
         evaluated_rise_time = self.eval_rise_time()
-
         evaluated_settling_time = self.eval_settling_time()
-
         evaluated_overshoot = self.eval_overshoot()
-
         evaluated_control_variation = self.eval_control_variation()
 
+        # Return
         return (evaluated_success, evaluated_rise_time, evaluated_settling_time, 
                 evaluated_overshoot, evaluated_control_variation)
 
 
     # Evaluates whether or not the agent succeeds and meets target state
+    # Argument: None
+    # Return: Whether or not controller succeeds, Boolean
+    # TODO: Vishnu
     def eval_success(self):
         return None
     
 
     # Evaluates the rise time of the agent
+    # Argument: None
+    # Return: Rise time, float
+    # TODO: Brian
     def eval_rise_time(self):
         return None
     
 
     # Evaluates the settling time of the agent
+    # Argument: None
+    # Return: Settling time, float
+    # TODO: Vishnu
     def eval_settling_time(self):
         return None
     
 
     # Evaluates the percent overshoot of the agent
+    # Argument: None
+    # Return: Percent overshoot, float
+    # TODO: Brian
     def eval_overshoot(self):
         return None
     
     
     # Evaluates the control variation of the agent
+    # Argument: None
+    # Return: Control variation, float
+    # TODO: Vishnu
     def eval_control_variation(self):
         return None
