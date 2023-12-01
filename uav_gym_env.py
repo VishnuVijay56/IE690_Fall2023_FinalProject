@@ -231,15 +231,45 @@ class UAVStallEnv(gym.Env):
         return sum_diff
 
 
+    # Finds the values of the evaluation criteria:
+    # -> Success/ Failure
+    # -> Rise Time
+    # -> Settling Time
     def evaluate_model(self):
-        evaluated_success = eval_success()
+        evaluated_success = self.eval_success()
 
-        evaluated_rise_time = eval_rise_time()
+        evaluated_rise_time = self.eval_rise_time()
 
-        evaluated_settling_time = eval_settling_time()
+        evaluated_settling_time = self.eval_settling_time()
 
-        evaluated_overshoot = eval_overshoot()
+        evaluated_overshoot = self.eval_overshoot()
 
-        evaluated_control_variation = eval_control_variation()
+        evaluated_control_variation = self.eval_control_variation()
 
+        return (evaluated_success, evaluated_rise_time, evaluated_settling_time, 
+                evaluated_overshoot, evaluated_control_variation)
+
+
+    # Evaluates whether or not the agent succeeds and meets target state
+    def eval_success(self):
+        return None
     
+
+    # Evaluates the rise time of the agent
+    def eval_rise_time(self):
+        return None
+    
+
+    # Evaluates the settling time of the agent
+    def eval_settling_time(self):
+        return None
+    
+
+    # Evaluates the percent overshoot of the agent
+    def eval_overshoot(self):
+        return None
+    
+    
+    # Evaluates the control variation of the agent
+    def eval_control_variation(self):
+        return None
