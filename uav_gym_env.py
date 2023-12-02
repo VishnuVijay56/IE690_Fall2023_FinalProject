@@ -63,7 +63,9 @@ class UAVStallEnv(gym.Env):
         # Create instance of MAV_Dynamics
         self.Ts = sim_options.Ts
         self.curr_time = 0
+        self.idx = 0
         self.end_time = sim_options.t_span[1]
+        self.max_steps = round(self.end_time / self.Ts)
         self.mav_dynamics = MAV_Dynamics(time_step=self.Ts) # time step in seconds
         self.mav_state = self.mav_dynamics.mav_state
         # self.mav_delta = self.mav_dynamics.delta
@@ -75,8 +77,8 @@ class UAVStallEnv(gym.Env):
         self.wind_sim = WindSimulation(self.Ts, sim_options.steady_state_wind, sim_options.wind_gust)
 
         # Create State and Action History Matrix
-        self.state_history = np.zeros((12, round(self.end_time / self.Ts)))
-        self.action_history = np.zeros((4, round(self.end_time / self.Ts)))
+        self.state_history = np.zeros((12, self.max_steps))
+        self.action_history = np.zeros((4, self.max_steps))
 
         # TODO: Call the reset function to randomize initial state
         self.reset()
@@ -105,8 +107,8 @@ class UAVStallEnv(gym.Env):
         info = {} # TODO: Change to output useful info
 
         # Zero the episode history, set initial state
-        self.state_history = np.zeros((12, round(self.end_time / self.Ts)))
-        self.action_history = np.zeros((4, round(self.end_time / self.Ts)))
+        self.state_history = np.zeros((12, self.max_steps))
+        self.action_history = np.zeros((4, self.max_steps))
         self.state_history[:, 0] = obs
 
         return (obs, info)
@@ -272,12 +274,45 @@ class UAVStallEnv(gym.Env):
                 evaluated_overshoot, evaluated_control_variation)
 
 
+    # Determines if the state is within the target bounds
+    # Argument: State (12-D vector)
+    # Return: The state is within target bounds, Boolean
+    def state_in_bounds(self, state : np.array):
+        curr_roll = state[6]
+        curr_pitch = state[7]
+        curr_Va = np.sqrt(state[3]**2 + state[4]**2 + state[5]**2)
+
+        target_roll = self.target_state[6]
+        target_pitch = self.target_state[7]
+        target_Va = np.sqrt(self.target_state[3]**2 + self.target_state[4]**2 + self.target_state[5]**2)
+
+        met_target = True
+        if abs(curr_roll - target_roll) > np.deg2rad(5):
+            met_target = False
+        if abs(curr_pitch - target_pitch) > np.deg2rad(5):
+            met_target = False
+        if abs(curr_Va - target_Va) > (2):
+            met_target = False
+
+        return met_target
+
+
     # Evaluates whether or not the agent succeeds and meets target state
     # Argument: None
     # Return: Whether or not controller succeeds, Boolean
-    # TODO: Vishnu
     def eval_success(self):
-        return None
+
+        start_of_succ = 0
+        for i in range(self.max_steps):
+            this_state = self.state_history[:, i].flatten()
+            # reset the index if curr state not in target bounds
+            if (not self.state_in_bounds(this_state)):
+                start_of_succ = i
+            # if curr state remains in target bounds for 100 time steps
+            if (i - start_of_succ) > 100:
+                return True 
+
+        return False # didn't reach target goal
     
 
     # Evaluates the rise time of the agent
@@ -291,9 +326,15 @@ class UAVStallEnv(gym.Env):
     # Evaluates the settling time of the agent
     # Argument: None
     # Return: Settling time, float
-    # TODO: Vishnu
     def eval_settling_time(self):
-        return None
+        
+        for i in range(self.max_steps):
+            index = self.max_steps - i - 1
+            this_state = self.state_history[index].flatten()
+            if (not self.state_in_bounds(this_state)):
+                return (index + 1) * self.Ts
+                
+        return 0
     
 
     # Evaluates the percent overshoot of the agent
