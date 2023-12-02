@@ -243,7 +243,7 @@ class UAVStallEnv(gym.Env):
 
 
     # Computes sum of the absolute differences between consecutive elements of a set
-    # Argument: A list of past 6 actions taken by UAV for a specific acuator
+    # Argument: A list of past 6 actions taken by UAV for a specific actuator
     # Return: Sum of differences
     def command_cost(self, set_of_actions : np.array):
         sum_diff = 0
@@ -351,4 +351,8 @@ class UAVStallEnv(gym.Env):
     # Return: Control variation, float
     # TODO: Vishnu
     def eval_control_variation(self):
-        return None
+        control_variation = np.zeros((self.action_dim))
+        for (i, a) in enumerate(self.action_history):
+            control_variation[i] = self.command_cost(a)
+
+        return np.mean(control_variation)
