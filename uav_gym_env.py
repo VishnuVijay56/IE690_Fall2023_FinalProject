@@ -200,7 +200,11 @@ class UAVStallEnv(gym.Env):
         self.mav_model.update_mav_state()
         if(self.mav_model.view_sim):
             self.mav_model.update_render()
-        
+
+        # Store States and Actions
+        self.state_history[:, self.idx] = self.mav_state.get_12D_state().flatten()
+        self.action_history[:, self.idx] = action
+
         # Update Time
         self.curr_time += self.Ts
 
