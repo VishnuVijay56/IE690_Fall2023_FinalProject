@@ -78,10 +78,6 @@ class UAVStallEnv(gym.Env):
         # Create instance of wind simulation
         self.wind_sim = WindSimulation(self.Ts, sim_options.steady_state_wind, sim_options.wind_gust)
 
-        # Create State and Action History Matrix
-        self.state_history = np.zeros((12, self.max_steps))
-        self.action_history = np.zeros((4, self.max_steps))
-
         # TODO: Call the reset function to randomize initial state
         self.reset()
 
@@ -111,6 +107,7 @@ class UAVStallEnv(gym.Env):
         # Zero the episode history, set initial state
         self.state_history = np.zeros((12, self.max_steps))
         self.action_history = np.zeros((4, self.max_steps))
+        self.time = np.zeros((self.max_steps))
         self.state_history[:, 0] = obs
 
         return (obs, info)
@@ -205,6 +202,7 @@ class UAVStallEnv(gym.Env):
         # Store States and Actions
         self.state_history[:, self.idx] = self.mav_state.get_12D_state().flatten()
         self.action_history[:, self.idx] = action
+        self.time[self.idx] = self.curr_time
 
         # Update Time
         self.curr_time += self.Ts
