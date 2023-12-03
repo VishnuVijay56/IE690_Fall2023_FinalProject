@@ -26,7 +26,7 @@ from delta_state import Delta_State
 class UAVStallEnv(gym.Env):
     # Initialization of UAV Stall Environment
     # Set global variables for use in the environment
-    def __init__(self, sim_options : SimCmds):
+    def __init__(self, sim_options : SimCmds, sampler : Sampler):
         super(UAVStallEnv, self).__init__()
 
         # 12-D Observation Space
@@ -58,7 +58,7 @@ class UAVStallEnv(gym.Env):
 
         # Options
         self.sim_options = sim_options
-        self.sampler = Sampler()
+        self.sampler = sampler
 
         # Create instance of MAV_Dynamics
         self.Ts = sim_options.Ts

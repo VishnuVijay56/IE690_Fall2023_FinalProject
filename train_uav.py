@@ -4,6 +4,7 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from uav_gym_env import UAVStallEnv
+from sample_states import Sampler
 from sim_cmds import SimCmds
 from evaluate_env import model_evaluator
 
@@ -15,8 +16,11 @@ sim_opt.display_graphs = False
 sim_opt.use_kf = False
 sim_opt.wind_gust = False
 
+# Sampler
+sampler = Sampler()
+
 # Instantiate Environment
-env = UAVStallEnv(sim_opt)
+env = UAVStallEnv(sim_opt, sampler)
 
 # Train Agent
 model = PPO("MlpPolicy", env, verbose=1)
