@@ -53,14 +53,11 @@ class UAVStallEnv(gym.Env):
         self.actions_T = np.zeros((running_avg_size))
 
         # Define Target Set
-        #TODO: Make sure these are defined properly
-        # self.target_low = np.array([0, 0, 0, 15, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1]).flatten()
-        # self.target_high = np.array([0, 0, 0, 30, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]).flatten()
-        # self.target_mean = (self.target_low + self.target_high) / 2
         self.target_state = MAV_State().get_12D_state()
 
         # Options
         self.sim_options = sim_options
+        self.curriculum_level = 1 # 1 - 3
 
         # Create instance of MAV_Dynamics
         self.Ts = sim_options.Ts
@@ -80,6 +77,17 @@ class UAVStallEnv(gym.Env):
 
         # TODO: Call the reset function to randomize initial state
         self.reset()
+
+
+    # Set the curriculum level of the agent (changes difficulty of the tasks we are teaching)
+    # Argument: New level
+    # Return: Change in level
+    def set_curriculum_level(self, new_lvl):
+        old_lvl = self.curriculum_level
+        self.curriculum_level = new_lvl
+
+        return (new_lvl - old_lvl)
+    
 
     # Reset environment to a random initial state
     # Argument: Seed
@@ -102,11 +110,11 @@ class UAVStallEnv(gym.Env):
 
         # Set return vars
         obs = self.mav_state.get_12D_state().astype(np.float32).flatten()
-        info = {} # TODO: Change to output useful info
+        info = {"target_state":self.target_state} # TODO: Change to output useful info
 
         # Zero the episode history, set initial state
-        self.state_history = np.zeros((12, self.max_steps))
-        self.action_history = np.zeros((4, self.max_steps))
+        self.state_history = np.zeros((self.state_dim, self.max_steps))
+        self.action_history = np.zeros((self.action_dim, self.max_steps))
         self.time = np.zeros((self.max_steps))
         self.state_history[:, 0] = obs
 
@@ -118,18 +126,45 @@ class UAVStallEnv(gym.Env):
     # Argument: None
     # Returns: a new MAV_State() message
     def random_init_state(self):
-        phi = np.deg2rad(300 * np.random.rand() - 150)
-        theta = np.deg2rad(90 * np.random.rand() - 45)
-        psi = np.deg2rad(120 * np.random.rand() - 60)
-        
-        p = np.deg2rad(120 * np.random.rand() - 60)
-        q = np.deg2rad(120 * np.random.rand() - 60)
-        r = np.deg2rad(120 * np.random.rand() - 60)
-        
-        alpha = np.deg2rad(52 * np.random.rand() - 26)
-        beta = np.deg2rad(52 * np.random.rand() - 26)
-        Va = 18 * np.random.rand() + 12
-        
+        if self.curriculum_level == 3:
+            phi = np.deg2rad(300 * np.random.rand() - 150)
+            theta = np.deg2rad(90 * np.random.rand() - 45)
+            psi = np.deg2rad(120 * np.random.rand() - 60)
+            
+            p = np.deg2rad(120 * np.random.rand() - 60)
+            q = np.deg2rad(120 * np.random.rand() - 60)
+            r = np.deg2rad(120 * np.random.rand() - 60)
+            
+            alpha = np.deg2rad(52 * np.random.rand() - 26)
+            beta = np.deg2rad(52 * np.random.rand() - 26)
+            Va = 18 * np.random.rand() + 12
+
+        elif self.curriculum_level == 2:
+            phi = np.deg2rad(150 * np.random.rand() - 75)
+            theta = np.deg2rad(50 * np.random.rand() - 25)
+            psi = np.deg2rad(60 * np.random.rand() - 30)
+            
+            p = np.deg2rad(60 * np.random.rand() - 30)
+            q = np.deg2rad(60 * np.random.rand() - 30)
+            r = np.deg2rad(60 * np.random.rand() - 30)
+            
+            alpha = np.deg2rad(26 * np.random.rand() - 13)
+            beta = np.deg2rad(26 * np.random.rand() - 13)
+            Va = 12 * np.random.rand() + 15
+
+        else:
+            phi = np.deg2rad(40 * np.random.rand() - 20)
+            theta = np.deg2rad(24 * np.random.rand() - 12)
+            psi = np.deg2rad(30 * np.random.rand() - 15)
+            
+            p = np.deg2rad(30 * np.random.rand() - 15)
+            q = np.deg2rad(30 * np.random.rand() - 15)
+            r = np.deg2rad(30 * np.random.rand() - 15)
+            
+            alpha = np.deg2rad(14 * np.random.rand() - 7)
+            beta = np.deg2rad(14 * np.random.rand() - 7)
+            Va = 6 * np.random.rand() + 18
+            
         new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
         new_state.alpha = alpha
         new_state.beta = beta
@@ -142,9 +177,20 @@ class UAVStallEnv(gym.Env):
     # Argument: None
     # Returns: a new MAV_State() message
     def random_target_state(self):
-        phi = np.deg2rad(300 * np.random.rand() - 150)
-        theta = np.deg2rad(90 * np.random.rand() - 45)
-        Va = 18 * np.random.rand() + 12
+        if self.curriculum_level == 3:
+            phi = np.deg2rad(120 * np.random.rand() - 60)
+            theta = np.deg2rad(60 * np.random.rand() - 30)
+            Va = 18 * np.random.rand() + 12
+
+        elif self.curriculum_level == 2:
+            phi = np.deg2rad(120 * np.random.rand() - 60)
+            theta = np.deg2rad(50 * np.random.rand() - 25)
+            Va = 12 * np.random.rand() + 15
+
+        else: 
+            phi = np.deg2rad(40 * np.random.rand() - 20)
+            theta = np.deg2rad(24 * np.random.rand() - 12)
+            Va = 6 * np.random.rand() + 18
 
         new_target = MAV_State()
         new_target.phi = phi
@@ -228,11 +274,11 @@ class UAVStallEnv(gym.Env):
     #           Action to be taken by the UAV
     # Return: Sum of negative cost of roll, pitch, velocity, and actuator command
     def cost_function(self, state : MAV_State, action : np.array):
-        r_phi = saturate(abs(state.phi[0] - self.target_mean[6]) / 3.3, 0, 0.3)
+        r_phi = saturate(abs(state.phi[0] - self.target_state[6]) / 3.3, 0, 0.3)
 
-        r_theta = saturate(abs(state.theta[0] - self.target_mean[7]) / 2.25, 0, 0.3)
+        r_theta = saturate(abs(state.theta[0] - self.target_state[7]) / 2.25, 0, 0.3)
 
-        desired_Va = np.sqrt((self.target_mean[3])**2 + (self.target_mean[4])**2 + (self.target_mean[5])**2)
+        desired_Va = np.sqrt((self.target_state[3])**2 + (self.target_state[4])**2 + (self.target_state[5])**2)
         r_Va = saturate(abs(state.Va[0] - desired_Va), 0, 0.3)
 
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
