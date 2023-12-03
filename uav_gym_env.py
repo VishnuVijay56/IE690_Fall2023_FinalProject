@@ -1,7 +1,7 @@
 """
 uav_gym_env.py: AI Gym
     - Author: Vishnu Vijay
-    - Created: 4/23/23
+    - Created: 9/23/23
 """
 
 # Library Imports
@@ -13,6 +13,7 @@ from mav import MAV
 from mav_dynamics import MAV_Dynamics
 from wind_simulation import WindSimulation
 from saturate_cmds import saturate
+from sample_states import Sampler
 
 # User-Defined Imports : message
 from sim_cmds import SimCmds
@@ -57,7 +58,7 @@ class UAVStallEnv(gym.Env):
 
         # Options
         self.sim_options = sim_options
-        self.curriculum_level = 1 # 1 - 3
+        self.sampler = Sampler()
 
         # Create instance of MAV_Dynamics
         self.Ts = sim_options.Ts
@@ -77,16 +78,6 @@ class UAVStallEnv(gym.Env):
 
         # TODO: Call the reset function to randomize initial state
         self.reset()
-
-
-    # Set the curriculum level of the agent (changes difficulty of the tasks we are teaching)
-    # Argument: New level
-    # Return: Change in level
-    def set_curriculum_level(self, new_lvl):
-        old_lvl = self.curriculum_level
-        self.curriculum_level = new_lvl
-
-        return (new_lvl - old_lvl)
     
 
     # Reset environment to a random initial state
@@ -98,8 +89,8 @@ class UAVStallEnv(gym.Env):
         np.random.seed(seed) # Seed initial conditions
 
         # Get random initial and target state
-        new_state = self.random_init_state()
-        new_target = self.random_target_state()
+        new_state = self.sampler.random_init_state()
+        new_target = self.sampler.random_target_state()
 
         # Reset MAV dynamical state
         self.mav_dynamics.mav_state = new_state
@@ -119,86 +110,6 @@ class UAVStallEnv(gym.Env):
         self.state_history[:, 0] = obs
 
         return (obs, info)
-    
-
-    # Generates a random initial state according to initial conditions
-    # from Bohn, 2019 paper
-    # Argument: None
-    # Returns: a new MAV_State() message
-    def random_init_state(self):
-        if self.curriculum_level == 3:
-            phi = np.deg2rad(300 * np.random.rand() - 150)
-            theta = np.deg2rad(90 * np.random.rand() - 45)
-            psi = np.deg2rad(120 * np.random.rand() - 60)
-            
-            p = np.deg2rad(120 * np.random.rand() - 60)
-            q = np.deg2rad(120 * np.random.rand() - 60)
-            r = np.deg2rad(120 * np.random.rand() - 60)
-            
-            alpha = np.deg2rad(52 * np.random.rand() - 26)
-            beta = np.deg2rad(52 * np.random.rand() - 26)
-            Va = 18 * np.random.rand() + 12
-
-        elif self.curriculum_level == 2:
-            phi = np.deg2rad(150 * np.random.rand() - 75)
-            theta = np.deg2rad(50 * np.random.rand() - 25)
-            psi = np.deg2rad(60 * np.random.rand() - 30)
-            
-            p = np.deg2rad(60 * np.random.rand() - 30)
-            q = np.deg2rad(60 * np.random.rand() - 30)
-            r = np.deg2rad(60 * np.random.rand() - 30)
-            
-            alpha = np.deg2rad(26 * np.random.rand() - 13)
-            beta = np.deg2rad(26 * np.random.rand() - 13)
-            Va = 12 * np.random.rand() + 15
-
-        else:
-            phi = np.deg2rad(40 * np.random.rand() - 20)
-            theta = np.deg2rad(24 * np.random.rand() - 12)
-            psi = np.deg2rad(30 * np.random.rand() - 15)
-            
-            p = np.deg2rad(30 * np.random.rand() - 15)
-            q = np.deg2rad(30 * np.random.rand() - 15)
-            r = np.deg2rad(30 * np.random.rand() - 15)
-            
-            alpha = np.deg2rad(14 * np.random.rand() - 7)
-            beta = np.deg2rad(14 * np.random.rand() - 7)
-            Va = 6 * np.random.rand() + 18
-            
-        new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
-        new_state.alpha = alpha
-        new_state.beta = beta
-
-        return new_state
-
-
-    # Generates a random target state according to initial conditions
-    # from Bohn, 2019 paper
-    # Argument: None
-    # Returns: a new MAV_State() message
-    def random_target_state(self):
-        if self.curriculum_level == 3:
-            phi = np.deg2rad(120 * np.random.rand() - 60)
-            theta = np.deg2rad(60 * np.random.rand() - 30)
-            Va = 18 * np.random.rand() + 12
-
-        elif self.curriculum_level == 2:
-            phi = np.deg2rad(120 * np.random.rand() - 60)
-            theta = np.deg2rad(50 * np.random.rand() - 25)
-            Va = 12 * np.random.rand() + 15
-
-        else: 
-            phi = np.deg2rad(40 * np.random.rand() - 20)
-            theta = np.deg2rad(24 * np.random.rand() - 12)
-            Va = 6 * np.random.rand() + 18
-
-        new_target = MAV_State()
-        new_target.phi = phi
-        new_target.theta = theta
-        new_target.Va = Va
-
-        return new_target
-
 
 
     # Move agent based on passed action
