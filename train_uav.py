@@ -1,3 +1,4 @@
+import numpy as np
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
@@ -39,7 +40,11 @@ for i in range(1_000):
     obs, reward, done, info = vec_env.step(action)
     evaluator.update(action, obs)
 
+np.set_printoptions(precision=3)
 evaluation = evaluator.evaluate()
 print("\n ---------------- \n")
 print(f"Was the run successful: {evaluation[0]} \n")
-print(f"Was the run successful: {evaluation[0]} \n")
+print(f"The rise times for velocities, pitch, and roll:", evaluation[1], "\n")
+print(f"The settling times for velocities, pitch, and roll:", evaluation[2], "\n")
+print(f"The % overshoot for velocities, pitch, and roll:", evaluation[3], "\n")
+print(f"The mean of the control variation", evaluation[4], "\n")
