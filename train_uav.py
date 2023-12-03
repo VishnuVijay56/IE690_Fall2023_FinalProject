@@ -40,11 +40,14 @@ for i in range(1_000):
     obs, reward, done, info = vec_env.step(action)
     evaluator.update(action, obs)
 
-np.set_printoptions(precision=3)
+np.set_printoptions(precision=4)
 evaluation = evaluator.evaluate()
-print("\n ---------------- \n")
+print("\n ----------------------------------------------- \n")
 print(f"Was the run successful: {evaluation[0]} \n")
 print(f"The rise times for velocities, pitch, and roll:", evaluation[1], "\n")
 print(f"The settling times for velocities, pitch, and roll:", evaluation[2], "\n")
 print(f"The % overshoot for velocities, pitch, and roll:", evaluation[3], "\n")
-print(f"The mean of the control variation", evaluation[4], "\n")
+print(f"The mean of the control variation:", evaluation[4], "\n")
+
+# Plot the run!
+evaluator.plot_run()

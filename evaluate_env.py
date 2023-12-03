@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class model_evaluator:
     def __init__(self, initial_state, target_state):
@@ -17,7 +18,6 @@ class model_evaluator:
         # Zero the episode history, set initial state
         self.state_history = np.zeros((12, self.max_steps+1))
         self.action_history = np.zeros((4, self.max_steps))
-        self.time = np.zeros((self.max_steps))
         self.state_history[:, 0] = self.initial_state
 
     def update(self, action, obs):
@@ -25,6 +25,44 @@ class model_evaluator:
         self.state_history[:, self.idx+1] = obs
 
         self.idx = self.idx+1
+
+    # Plots the run of the aircraft
+    def plot_run(self):
+        # Inputs
+        fig2, axes2 = plt.subplots(2,2)
+
+        axes2[0,0].plot(self.time[:-1], self.action_history[0, :])
+        axes2[0,0].set_title("ELEVATOR")
+        axes2[0,0].set_xlabel("Time (seconds)")
+        axes2[0,0].set_ylabel("Deflection (degrees)")
+
+        axes2[1,0].plot(self.time[:-1], self.action_history[1, :])
+        axes2[1,0].set_title("AILERON")
+        axes2[1,0].set_xlabel("Time (seconds)")
+        axes2[1,0].set_ylabel("Deflection (degrees)")
+
+        axes2[0,1].plot(self.time[:-1], self.action_history[3, :])
+        axes2[0,1].set_title("THROTTLE")
+        axes2[0,1].set_xlabel("Time (seconds)")
+        axes2[0,1].set_ylabel("Level (percent)")
+
+        axes2[1,1].plot(self.time[:-1], self.action_history[2, :])
+        axes2[1,1].set_title("RUDDER")
+        axes2[1,1].set_xlabel("Time (seconds)")
+        axes2[1,1].set_ylabel("Deflection (degrees)")
+
+        # Plane tracking
+        fig2 = plt.figure()
+
+        ax = fig2.add_subplot(2, 2, (1,4), projection='3d')
+        ax.plot3D(self.state_history[1, :], self.state_history[0, :], self.state_history[2, :])
+        ax.set_title("MAV POSITION TRACK")
+        ax.set_xlabel("East Position (meters)")
+        ax.set_ylabel("North Position (meters)")
+        ax.set_zlabel("Altitude (meters)")
+
+        # Show plots
+        plt.show()
 
     # Finds the values of the evaluation criteria:
     # -> Success/ Failure
