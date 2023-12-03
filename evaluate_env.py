@@ -12,7 +12,7 @@ class model_evaluator:
         self.max_steps = 2000
         self.idx = 0
         self.Ts = 0.01
-        self.time = np.arange([0, 20.01, 0.01])
+        self.time = np.arange(0, 20.001, 0.01)
 
         # Zero the episode history, set initial state
         self.state_history = np.zeros((12, self.max_steps+1))
@@ -25,6 +25,26 @@ class model_evaluator:
         self.state_history[:, self.idx+1] = obs
 
         self.idx = self.idx+1
+
+    # Finds the values of the evaluation criteria:
+    # -> Success/ Failure
+    # -> Rise Time
+    # -> Settling Time
+    # -> Percent Overshoot
+    # -> Control Variation
+    # Argument: None
+    # Return: Tuple of evaluated criteria
+    def evaluate(self):
+        # Evaluate our criteria
+        evaluated_success = self.eval_success()
+        evaluated_rise_time = self.eval_rise_time()
+        evaluated_settling_time = self.eval_settling_time()
+        evaluated_overshoot = self.eval_overshoot()
+        evaluated_control_variation = self.eval_control_variation()
+
+        # Return
+        return (evaluated_success, evaluated_rise_time, evaluated_settling_time, 
+                evaluated_overshoot, evaluated_control_variation)
 
     # Computes sum of the absolute differences between consecutive elements of a set
     # Argument: A list of past 6 actions taken by UAV for a specific actuator
@@ -62,7 +82,7 @@ class model_evaluator:
     # Evaluates whether or not the agent succeeds and meets target state
     # Argument: None
     # Return: Whether or not controller succeeds, Boolean
-    def evaluate(self):
+    def eval_success(self):
 
         start_of_succ = 0
         for i in range(self.max_steps):
@@ -83,11 +103,11 @@ class model_evaluator:
     # TODO: Brian
     def eval_rise_time(self):
         # Find 10% and 90% bounds
-        velocity = np.linalg.norm(self.state_history[:, 3:6], axis=1)
-        roll = self.state_history[:, 6]
-        pitch = self.state_history[:, 7]
+        velocity = np.linalg.norm(self.state_history[3:6, :], axis=0)
+        roll = self.state_history[6, :]
+        pitch = self.state_history[7, :]
         state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.linalg.norm(target_state[3:6], axis=1), target_state[6], target_state[7]))
+        target_state = np.array((np.linalg.norm(self.target_state[3:6]), self.target_state[6], self.target_state[7]))
         len_arg = len(target_state)
 
         # Function for finding zero crossings
@@ -123,7 +143,7 @@ class model_evaluator:
 
         for i in range(self.max_steps):
             index = self.max_steps - i - 1
-            this_state = self.state_history[index].flatten()
+            this_state = self.state_history[:, index].flatten()
             if (not self.state_in_bounds(this_state)):
                 return (index + 1) * self.Ts
                 
@@ -135,11 +155,11 @@ class model_evaluator:
     # Return: Percent overshoot, float
     # TODO: Brian
     def eval_overshoot(self, eps=1e-1):
-        velocity = np.norm(self.state_history[:, 3:6], axis=1)
-        roll = self.state_history[:, 6]
-        pitch = self.state_history[:, 7]
+        velocity = np.linalg.norm(self.state_history[3:6, :], axis=0)
+        roll = self.state_history[6, :]
+        pitch = self.state_history[7, :]
         state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.linalg.norm(self.target_state[3:6], axis=1), self.target_state[6], self.target_state[7]))
+        target_state = np.array((np.linalg.norm(self.target_state[3:6]), self.target_state[6], self.target_state[7]))
         len_arg = len(target_state)
 
         init_state = state_history[:, 0]

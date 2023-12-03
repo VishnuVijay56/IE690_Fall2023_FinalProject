@@ -28,17 +28,18 @@ model.learn(total_timesteps=2_000)
 
 # Evaluate Trained Agent
 vec_env = model.get_env()
-obs, info = vec_env.reset()
-target = info["target_state"]
+obs = vec_env.reset()
 
 # Initialize Evaluator
-evaluator = model_evaluator(obs, target)
+evaluator = model_evaluator(obs, sampler.target_state)
 
 for i in range(1_000):
-    print(i)
+    # print(i)
     action, _states = model.predict(obs, deterministic=True)
     obs, reward, done, info = vec_env.step(action)
     evaluator.update(action, obs)
 
-something = evaluator.evaluate()
-print(env.evaluate_model())
+evaluation = evaluator.evaluate()
+print("\n ---------------- \n")
+print(f"Was the run successful: {evaluation[0]} \n")
+print(f"Was the run successful: {evaluation[0]} \n")

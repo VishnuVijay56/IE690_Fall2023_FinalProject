@@ -282,11 +282,11 @@ class UAVStallEnv(gym.Env):
     # TODO: Brian
     def eval_rise_time(self):
         # Find 10% and 90% bounds
-        velocity = np.norm(self.state_history[:, 3:6], axis=1)
+        velocity = np.linalg.norm(self.state_history[:, 3:6], axis=1)
         roll = self.state_history[:, 6]
         pitch = self.state_history[:, 7]
         state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.norm(target_state[3:6], axis=1), target_state[6], target_state[7]))
+        target_state = np.array((np.linalg.norm(target_state[3:6], axis=1), target_state[6], target_state[7]))
         len_arg = len(target_state)
 
         # Function for finding zero crossings
@@ -334,11 +334,11 @@ class UAVStallEnv(gym.Env):
     # Return: Percent overshoot, float
     # TODO: Brian
     def eval_overshoot(self, eps=1e-1):
-        velocity = np.norm(self.state_history[:, 3:6], axis=1)
+        velocity = np.linalg.norm(self.state_history[:, 3:6], axis=1)
         roll = self.state_history[:, 6]
         pitch = self.state_history[:, 7]
         state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.norm(self.target_state[3:6], axis=1), self.target_state[6], self.target_state[7]))
+        target_state = np.array((np.linalg.norm(self.target_state[3:6], axis=1), self.target_state[6], self.target_state[7]))
         len_arg = len(target_state)
 
         init_state = state_history[:, 0]
