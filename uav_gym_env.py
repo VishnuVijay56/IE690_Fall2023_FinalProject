@@ -370,24 +370,30 @@ class UAVStallEnv(gym.Env):
     # Return: Rise time, float
     # TODO: Brian
     def eval_rise_time(self):
-        # Function for finding zero crossings
-        crossings = lambda a: [np.where(np.diff(np.sign(a), axis=0)[:, i])[0] for i in range(self.state_dim)]
-
         # Find 10% and 90% bounds
-        init_state = self.state_history[:, 0]
-        lower_bound  = (self.target_state - init_state)*0.1 + init_state
-        upper_bound = (self.target_state - init_state)*0.9 + init_state
+        velocity = np.norm(self.state_history[:, 3:6], axis=1)
+        roll = self.state_history[:, 6]
+        pitch = self.state_history[:, 7]
+        state_history = np.array([velocity, roll, pitch])
+        target_state = np.array((np.norm(target_state[3:6], axis=1), target_state[6], target_state[7]))
+        len_arg = len(target_state)
+
+        # Function for finding zero crossings
+        crossings = lambda a: [np.where(np.diff(np.sign(a), axis=0)[:, i])[0] for i in range(len_arg)]
+        init_state = state_history[:, 0]
+        lower_bound  = (target_state - init_state)*0.1 + init_state
+        upper_bound = (target_state - init_state)*0.9 + init_state
 
         # Find crossings of lower and upper bounds
-        lb_crossings = crossings(self.state_history.T - lower_bound)
-        ub_crossings = crossings(self.state_history.T - upper_bound)
+        lb_crossings = crossings(state_history.T - lower_bound)
+        ub_crossings = crossings(state_history.T - upper_bound)
 
         # Find t's at crossings of all states
-        lb_times = np.zeros(self.state_dim)
-        ub_times = np.zeros(self.state_dim)
-        times = np.zeros(self.state_dim)
+        lb_times = np.zeros(len_arg)
+        ub_times = np.zeros(len_arg)
+        times = np.zeros(len_arg)
 
-        for i in range(self.state_dim):
+        for i in range(len_arg):
             try: # Check to see if bounds were crossed, if never crossed then rise time is infinity
                 lb_times[i] = self.time[lb_crossings[i][0]]
                 ub_times[i] = self.time[ub_crossings[i][0]]
@@ -402,7 +408,7 @@ class UAVStallEnv(gym.Env):
     # Argument: None
     # Return: Settling time, float
     def eval_settling_time(self):
-        
+
         for i in range(self.max_steps):
             index = self.max_steps - i - 1
             this_state = self.state_history[index].flatten()
@@ -417,14 +423,21 @@ class UAVStallEnv(gym.Env):
     # Return: Percent overshoot, float
     # TODO: Brian
     def eval_overshoot(self, eps=1e-1):
-        init_state = self.state_history[:, 0]
-        t_i = self.target_state - init_state  # Target - Initial
-        direction = np.sign(t_i)
-        overshoot_index = np.argmax(direction * self.state_history.T - self.target_state, axis=0)
+        velocity = np.norm(self.state_history[:, 3:6], axis=1)
+        roll = self.state_history[:, 6]
+        pitch = self.state_history[:, 7]
+        state_history = np.array([velocity, roll, pitch])
+        target_state = np.array((np.norm(self.target_state[3:6], axis=1), self.target_state[6], self.target_state[7]))
+        len_arg = len(target_state)
 
-        overshoot = np.zeros(self.state_dim)
-        for i in range(self.state_dim):
-            overshoot_val = self.state_history[i, overshoot_index[i]] - self.target_state[i] # Find the distance from the overshoot to the target state
+        init_state = state_history[:, 0]
+        t_i = target_state - init_state  # Target - Initial
+        direction = np.sign(t_i)
+        overshoot_index = np.argmax(direction * state_history.T - target_state, axis=0)
+
+        overshoot = np.zeros(len_arg)
+        for i in range(len_arg):
+            overshoot_val = state_history[i, overshoot_index[i]] - target_state[i] # Find the distance from the overshoot to the target state
 
             if t_i[i] <= eps: # If target state is basically initial state, then the overshoot percent is value of the overshoot
                 overshoot[i] = overshoot_val * 100
