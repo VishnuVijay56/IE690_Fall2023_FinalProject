@@ -29,7 +29,7 @@ class model_evaluator:
     # Plots the run of the aircraft
     def plot_run(self):
         # Inputs
-        fig2, axes2 = plt.subplots(2,2)
+        fig1, axes2 = plt.subplots(2,2)
 
         axes2[0,0].plot(self.time[:-1], self.action_history[0, :])
         axes2[0,0].set_title("ELEVATOR")
@@ -61,6 +61,20 @@ class model_evaluator:
         ax.set_ylabel("North Position (meters)")
         ax.set_zlabel("Altitude (meters)")
 
+        # Other plots
+        fig3, ax3 = plt.subplots(1,3)
+
+        ax3[0].plot(self.time, self.state_history[0, :])
+        ax3[0].set_title("MAV POSITION VS TIME")
+        ax3[0].set_ylabel("North Position (meters)")
+
+        ax3[1].plot(self.time, self.state_history[1, :])
+        ax3[1].set_title("MAV POSITION VS TIME")
+        ax3[1].set_ylabel("East Position (meters)")
+
+        ax3[2].plot(self.time, self.state_history[2, :])
+        ax3[2].set_title("MAV POSITION VS TIME")
+        ax3[2].set_ylabel("Altitude (meters)")
         # Show plots
         plt.show()
 

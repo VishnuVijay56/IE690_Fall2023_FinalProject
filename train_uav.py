@@ -25,7 +25,7 @@ env = UAVStallEnv(sim_opt, sampler)
 
 # Train Agent
 model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=20_000_000)
+model.learn(total_timesteps=2_000)
 
 # Evaluate Trained Agent
 obs = env.reset()[0] # Grab initial value for observation
