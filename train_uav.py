@@ -25,19 +25,17 @@ env = UAVStallEnv(sim_opt, sampler)
 
 # Train Agent
 model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=2_000)
+model.learn(total_timesteps=20_000_000)
 
 # Evaluate Trained Agent
-vec_env = model.get_env()
-obs = vec_env.reset()
+obs = env.reset()[0] # Grab initial value for observation
 
 # Initialize Evaluator
 evaluator = model_evaluator(obs, sampler.target_state)
 
-for i in range(1_000):
-    # print(i)
+for i in range(2_000):
     action, _states = model.predict(obs, deterministic=True)
-    obs, reward, done, info = vec_env.step(action)
+    obs, reward, done, info, flags = env.step(action)
     evaluator.update(action, obs)
 
 np.set_printoptions(precision=4)

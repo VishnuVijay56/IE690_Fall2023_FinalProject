@@ -104,9 +104,9 @@ class UAVStallEnv(gym.Env):
         info = {"target_state":self.target_state} # TODO: Change to output useful info
 
         # Zero the episode history, set initial state
-        self.state_history = np.zeros((self.state_dim, self.max_steps))
-        self.action_history = np.zeros((self.action_dim, self.max_steps))
-        self.time = np.zeros((self.max_steps))
+        self.state_history = np.zeros((self.state_dim, self.max_steps+2))
+        self.action_history = np.zeros((self.action_dim, self.max_steps+1))
+        self.time = np.zeros((self.max_steps+1))
         self.state_history[:, 0] = obs
 
         return (obs, info)
@@ -156,13 +156,14 @@ class UAVStallEnv(gym.Env):
         if(self.mav_model.view_sim):
             self.mav_model.update_render()
 
-        # Store States and Actions
-        self.state_history[:, self.idx] = self.mav_state.get_12D_state().flatten()
-        self.action_history[:, self.idx] = action
-        self.time[self.idx] = self.curr_time
+        # # Store States and Actions
+        # self.state_history[:, self.idx+1] = self.mav_state.get_12D_state().flatten()
+        # self.action_history[:, self.idx] = action
+        # self.time[self.idx] = self.curr_time
 
         # Update Time
         self.curr_time += self.Ts
+        self.idx += 1
 
         # Assign Reward to State, Action pair
         reward = self.cost_function(curr_state, action)
