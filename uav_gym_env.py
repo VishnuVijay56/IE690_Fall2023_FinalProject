@@ -173,6 +173,16 @@ class UAVStallEnv(gym.Env):
         # Assign Reward to State, Action pair
         reward = self.cost_function(curr_state, action)
 
+        # Variables for evaluating success
+        self.start_of_succ = 0
+        is_succ = True
+        if (not self.state_in_bounds(self.mav_state.get_12D_state().flatten())):
+            # reset the index if curr state not in target bounds
+            self.start_of_succ = self.idx
+        if (self.idx - self.start_of_succ) > 100:
+            # if curr state remains in target bounds for 100 time steps
+            return True 
+
         # Is episode done?
         if (self.curr_time > self.end_time): # Time done
             is_done = True
@@ -180,7 +190,9 @@ class UAVStallEnv(gym.Env):
             is_done = True
             #reward -= 100
             failure_flag = 1
-        # elif () # Reached target
+        elif (is_succ): # Reached target
+            reward -= 10
+            is_done = True
 
         return self.mav_state.get_12D_state().flatten(), reward, is_done, is_truncated, {"Flags":failure_flag}
 
@@ -220,27 +232,6 @@ class UAVStallEnv(gym.Env):
         return sum_diff
 
 
-    # Finds the values of the evaluation criteria:
-    # -> Success/ Failure
-    # -> Rise Time
-    # -> Settling Time
-    # -> Percent Overshoot
-    # -> Control Variation
-    # Argument: None
-    # Return: Tuple of evaluated criteria
-    def evaluate_model(self):
-        # Evaluate our criteria
-        evaluated_success = self.eval_success()
-        evaluated_rise_time = self.eval_rise_time()
-        evaluated_settling_time = self.eval_settling_time()
-        evaluated_overshoot = self.eval_overshoot()
-        evaluated_control_variation = self.eval_control_variation()
-
-        # Return
-        return (evaluated_success, evaluated_rise_time, evaluated_settling_time, 
-                evaluated_overshoot, evaluated_control_variation)
-
-
     # Determines if the state is within the target bounds
     # Argument: State (12-D vector)
     # Return: The state is within target bounds, Boolean
@@ -270,7 +261,7 @@ class UAVStallEnv(gym.Env):
     def eval_success(self):
 
         start_of_succ = 0
-        for i in range(self.max_steps):
+        for i in range(self.idx):
             this_state = self.state_history[:, i].flatten()
             # reset the index if curr state not in target bounds
             if (not self.state_in_bounds(this_state)):
@@ -281,96 +272,3 @@ class UAVStallEnv(gym.Env):
 
         return False # didn't reach target goal
     
-
-    # Evaluates the rise time of the agent
-    # Argument: None
-    # Return: Rise time, float
-    # TODO: Brian
-    def eval_rise_time(self):
-        # Find 10% and 90% bounds
-        velocity = np.linalg.norm(self.state_history[:, 3:6], axis=1)
-        roll = self.state_history[:, 6]
-        pitch = self.state_history[:, 7]
-        state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.linalg.norm(target_state[3:6], axis=1), target_state[6], target_state[7]))
-        len_arg = len(target_state)
-
-        # Function for finding zero crossings
-        crossings = lambda a: [np.where(np.diff(np.sign(a), axis=0)[:, i])[0] for i in range(len_arg)]
-        init_state = state_history[:, 0]
-        lower_bound  = (target_state - init_state)*0.1 + init_state
-        upper_bound = (target_state - init_state)*0.9 + init_state
-
-        # Find crossings of lower and upper bounds
-        lb_crossings = crossings(state_history.T - lower_bound)
-        ub_crossings = crossings(state_history.T - upper_bound)
-
-        # Find t's at crossings of all states
-        lb_times = np.zeros(len_arg)
-        ub_times = np.zeros(len_arg)
-        times = np.zeros(len_arg)
-
-        for i in range(len_arg):
-            try: # Check to see if bounds were crossed, if never crossed then rise time is infinity
-                lb_times[i] = self.time[lb_crossings[i][0]]
-                ub_times[i] = self.time[ub_crossings[i][0]]
-                times[i] = ub_times[i] - lb_times[i]
-            except:
-                times[i] = np.inf
-
-        return times
-    
-
-    # Evaluates the settling time of the agent
-    # Argument: None
-    # Return: Settling time, float
-    def eval_settling_time(self):
-
-        for i in range(self.max_steps):
-            index = self.max_steps - i - 1
-            this_state = self.state_history[index].flatten()
-            if (not self.state_in_bounds(this_state)):
-                return (index + 1) * self.Ts
-                
-        return 0
-    
-
-    # Evaluates the percent overshoot of the agent
-    # Argument: None
-    # Return: Percent overshoot, float
-    # TODO: Brian
-    def eval_overshoot(self, eps=1e-1):
-        velocity = np.linalg.norm(self.state_history[:, 3:6], axis=1)
-        roll = self.state_history[:, 6]
-        pitch = self.state_history[:, 7]
-        state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.linalg.norm(self.target_state[3:6], axis=1), self.target_state[6], self.target_state[7]))
-        len_arg = len(target_state)
-
-        init_state = state_history[:, 0]
-        t_i = target_state - init_state  # Target - Initial
-        direction = np.sign(t_i)
-        overshoot_index = np.argmax(direction * state_history.T - target_state, axis=0)
-
-        overshoot = np.zeros(len_arg)
-        for i in range(len_arg):
-            overshoot_val = state_history[i, overshoot_index[i]] - target_state[i] # Find the distance from the overshoot to the target state
-
-            if t_i[i] <= eps: # If target state is basically initial state, then the overshoot percent is value of the overshoot
-                overshoot[i] = overshoot_val * 100
-            else:
-                overshoot[i] = overshoot_val/t_i[i] * 100 # Finds the ratio of the overshoot value and the distance to the target from the initial state
-
-        return overshoot
-    
-    
-    # Evaluates the control variation of the agent
-    # Argument: None
-    # Return: Control variation, float
-    # TODO: Vishnu
-    def eval_control_variation(self):
-        control_variation = np.zeros((self.action_dim))
-        for (i, a) in enumerate(self.action_history):
-            control_variation[i] = self.command_cost(a)
-
-        return np.mean(control_variation)
