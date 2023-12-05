@@ -193,13 +193,46 @@ class model_evaluator:
     # Return: Settling time, float
     def eval_settling_time(self):
 
+        # Settling times
+        met_roll = False
+        met_pitch = False
+        met_Va = False
+        settling_roll = -np.inf
+        settling_pitch = -np.inf
+        settling_Va = -np.inf
+
+        # Target values
+        target_roll = self.target_state[6]
+        target_pitch = self.target_state[7]
+        target_Va = np.sqrt(self.target_state[3]**2 + self.target_state[4]**2 + self.target_state[5]**2)
+
         for i in range(self.max_steps):
+            # Index moving backwards from end of array
             index = self.max_steps - i - 1
-            this_state = self.state_history[:, index].flatten()
-            if (not self.state_in_bounds(this_state)):
-                return (index + 1) * self.Ts
+            state = self.state_history[:, index].flatten()
+
+            # Current value of states of interest
+            curr_roll = state[6]
+            curr_pitch = state[7]
+            curr_Va = np.sqrt(state[3]**2 + state[4]**2 + state[5]**2)
+
+            # Check roll
+            if (not met_roll) and (abs(curr_roll - target_roll) > np.deg2rad(5)):
+                met_roll = True
+                settling_roll = (index + 1) * self.Ts
+            # Check Pitch
+            if (not met_pitch) and (abs(curr_pitch - target_pitch) > np.deg2rad(5)):
+                met_pitch = False
+                settling_pitch = (index + 1) * self.Ts
+            # Check Airspeed
+            if (not met_Va) and (abs(curr_Va - target_Va) > (2)):
+                met_Va = False
+                settling_Va = (index + 1) * self.Ts
+
+            if (met_roll and met_pitch and met_Va):
+                break
                 
-        return 0
+        return (settling_roll, settling_pitch, settling_Va)
 
 
     # Evaluates the percent overshoot of the agent
@@ -238,6 +271,6 @@ class model_evaluator:
     def eval_control_variation(self):
         control_variation = np.zeros((self.action_dim))
         for (i, a) in enumerate(self.action_history):
-            control_variation[i] = self.command_cost(a)
+            control_variation[i] = self.command_cost(a) / self.max_steps
 
         return np.mean(control_variation)
