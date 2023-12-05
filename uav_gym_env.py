@@ -14,6 +14,7 @@ from mav_dynamics import MAV_Dynamics
 from wind_simulation import WindSimulation
 from saturate_cmds import saturate
 from sample_states import Sampler
+from helper import EulerToQuaternion
 
 # User-Defined Imports : message
 from sim_cmds import SimCmds
@@ -90,11 +91,15 @@ class UAVStallEnv(gym.Env):
 
         # Get random initial and target state
         new_state = self.sampler.random_init_state()
+        self.mav_state = new_state
         new_target = self.sampler.random_target_state()
 
         # Reset MAV dynamical state
-        self.mav_dynamics.mav_state = new_state
-        self.mav_state = new_state
+        x_euler = new_state.get_12D_state().flatten()
+        angles = x_euler[6:9]
+        quat = EulerToQuaternion(angles[0], angles[1], angles[2]).flatten()
+        x_quat = np.hstack((x_euler[0:6], quat, x_euler[9:]))
+        self.mav_dynamics.internal_state = x_quat.reshape((x_quat.size,1))
 
         # Reset target state
         self.target_state = new_target.get_12D_state().astype(np.float32).flatten()
