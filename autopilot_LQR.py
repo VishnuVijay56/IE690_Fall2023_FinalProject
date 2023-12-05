@@ -150,3 +150,44 @@ class Autopilot:
         else:
             output = input
         return output
+
+    def normalized_update(self, target_state, state):
+        ## Construct Target State
+        phi_t = target_state[6]
+        theta_t = target_state[7]
+        Va_t = np.linalg.norm(target_state[3:6])
+
+        target = MAV_State()
+        target.phi = phi_t
+        target.theta = theta_t
+        target.Va = Va_t
+
+        ## Construct Current State
+        # North, East, Alt, u, v, w, Phi, Theta, Psi, P, Q, R = state.flatten()
+        curr_state = MAV_State(0, state[6], state[7], state[8], state[9], state[10], state[11], np.linalg.norm(state[3:6]))
+        curr_state.alpha = np.arctan(state[5] / state[3])
+        curr_state.beta = np.arcsin(state[4] / (np.linalg.norm(state[3:6])))
+
+        ## Lattitude Corntroller
+        lat_target = target.get_lat_state()
+        lat_state = curr_state.get_lat_state()
+
+        temp = -self.K_lat @ (lat_state-lat_target)
+        delta_a = self.saturate(temp.item(0) + self.trim_d_a, -np.radians(30), np.radians(30))
+        delta_r = self.saturate(temp.item(1) + self.trim_d_r, -np.radians(30), np.radians(30))
+
+        ## Longitude Corntroller
+        lon_target = target.get_lon_state()
+        lon_state = curr_state.get_lon_state()
+
+        temp = -self.K_lon @ (lon_state-lon_target)
+        delta_e = self.saturate(temp.item(0) + self.trim_d_e, -np.radians(30), np.radians(30))
+        delta_t = self.saturate((temp.item(1) + self.trim_d_t), 0., 1.)
+
+    
+        d_e_norm = delta_e / np.radians(30)
+        d_a_norm = delta_a / np.radians(30)
+        d_r_norm = delta_r / np.radians(30)
+        d_t_norm = delta_t * 2 - 1
+
+        return np.array([d_e_norm, d_a_norm, d_r_norm, d_t_norm])
