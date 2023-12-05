@@ -35,11 +35,11 @@ class Autopilot:
         B_lat = M.B_lat
 
         # Old
-        q_v = 1e-1
-        q_p = 1e0
+        q_v = 1e1
+        q_p = 1e-1
         q_r = 1e-1
-        q_phi = 1e0
-        q_chi = 1e1
+        q_phi = 1e1
+        q_chi = 0
         # New
         # q_v = 1e1
         # q_p = 1e0
@@ -68,9 +68,9 @@ class Autopilot:
         # Old
         q_u = 1e1
         q_w = 1e1
-        q_q = 1e-2
-        q_theta = 1e-1
-        q_h = 1e3
+        q_q = 1e-1
+        q_theta = 1e1
+        q_h = 0
         # New
         # q_u = 1e2
         # q_w = 1e2
@@ -168,7 +168,7 @@ class Autopilot:
         curr_state.alpha = np.arctan(state[5] / state[3])
         curr_state.beta = np.arcsin(state[4] / (np.linalg.norm(state[3:6])))
 
-        ## Lattitude Corntroller
+        ## Latitude Corntroller
         lat_target = target.get_lat_state()
         lat_state = curr_state.get_lat_state()
 
@@ -184,7 +184,7 @@ class Autopilot:
         delta_e = self.saturate(temp.item(0) + self.trim_d_e, -np.radians(30), np.radians(30))
         delta_t = self.saturate((temp.item(1) + self.trim_d_t), 0., 1.)
 
-    
+        ## Normalize Measurement
         d_e_norm = delta_e / np.radians(30)
         d_a_norm = delta_a / np.radians(30)
         d_r_norm = delta_r / np.radians(30)
