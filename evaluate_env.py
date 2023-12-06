@@ -265,13 +265,14 @@ class model_evaluator:
     # Return: Percent overshoot, float
     # TODO: Brian
     def eval_overshoot(self, eps=1e-1):
+        # Definitions
         velocity = np.linalg.norm(self.state_history[3:6, :], axis=0)
         roll = self.state_history[6, :]
         pitch = self.state_history[7, :]
         state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.linalg.norm(self.target_state[3:6]), self.target_state[6], self.target_state[7]))
+        target_state = np.array((np.linalg.norm(self.target_state[3:6]), self.target_state.flatten()[6], self.target_state.flatten()[7]))
         len_arg = len(target_state)
-
+        
         init_state = state_history[:, 0]
         t_i = target_state - init_state  # Target - Initial
         direction = np.sign(t_i)
@@ -280,11 +281,7 @@ class model_evaluator:
         overshoot = np.zeros(len_arg)
         for i in range(len_arg):
             overshoot_val = state_history[i, overshoot_index[i]] - target_state[i] # Find the distance from the overshoot to the target state
-
-            if t_i[i] <= eps: # If target state is basically initial state, then the overshoot percent is value of the overshoot
-                overshoot[i] = overshoot_val * 100
-            else:
-                overshoot[i] = overshoot_val/t_i[i] * 100 # Finds the ratio of the overshoot value and the distance to the target from the initial state
+            overshoot[i] = overshoot_val/t_i[i] * 100 # Finds the ratio of the overshoot value and the distance to the target from the initial state
 
         return overshoot
 
