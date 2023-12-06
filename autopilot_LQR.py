@@ -35,7 +35,7 @@ class Autopilot:
         B_lat = M.B_lat
 
         # Old
-        q_v = 1e1
+        q_v = 1e-1
         q_p = 1e-1
         q_r = 1e-1
         q_phi = 1e1
@@ -67,9 +67,9 @@ class Autopilot:
 
         # Old
         q_u = 1e1
-        q_w = 1e1
+        q_w = 1e0
         q_q = 1e-1
-        q_theta = 1e1
+        q_theta = 1e3
         q_h = 0
         # New
         # q_u = 1e2
