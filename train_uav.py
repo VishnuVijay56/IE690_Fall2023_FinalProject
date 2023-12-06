@@ -26,9 +26,11 @@ sampler = Sampler()
 env = UAVStallEnv(sim_opt, sampler)
 
 
-# ## Train Agent
-# model = PPO("MlpPolicy", env, verbose=1)
-# model.learn(total_timesteps=2_000)
+## Train Agent
+# Check this out for GPU usage: https://github.com/DLR-RM/stable-baselines3/issues/350
+# To use tensorboard, have tensorflow installed, paste this at the end of the PPO line: tensorboard_log="log", and run: tensorboard --logdir ./log/  in a seperate terminal
+model = PPO("MlpPolicy", env, verbose=1, device="cpu")
+model.learn(total_timesteps=2_000)
 
 
 ## Evaluate Trained Agent
@@ -43,10 +45,10 @@ evaluator = model_evaluator(initial_state=initial_state, target_state=target_sta
 
 for i in range(2_000):
     # RL model
-    # action, _states = model.predict(obs, deterministic=True)
+    action, _states = model.predict(obs, deterministic=True)
 
     # LQR controller
-    action = LQR_controller.normalized_update(target_state=target_state, state=obs)
+    # action = LQR_controller.normalized_update(target_state=target_state, state=obs)
 
     # Step Simulator
     obs, reward, done, info, flags = env.step(action)
@@ -73,4 +75,4 @@ print("The initial state is:", initial_state)
 print("The target state is:", target_state.flatten())
 
 # Plot the run!
-evaluator.plot_run()
+# evaluator.plot_run()
