@@ -175,13 +175,13 @@ class UAVStallEnv(gym.Env):
 
         # Variables for evaluating success
         self.start_of_succ = 0
-        is_succ = True
+        is_succ = False
         if (not self.state_in_bounds(self.mav_state.get_12D_state().flatten())):
             # reset the index if curr state not in target bounds
             self.start_of_succ = self.idx
         if (self.idx - self.start_of_succ) > 100:
             # if curr state remains in target bounds for 100 time steps
-            return True 
+            is_succ = True
 
         # Is episode done?
         if (self.curr_time > self.end_time): # Time done
