@@ -64,7 +64,7 @@ class MAV_State:
             self.beta = 0 # sideslip angle
             self.Vg = 0 # groundspeed
             self.gamma = 0 # flight path angle
-            self.chi = 0 # course angle
+            self.chi = self.psi # course angle
 
             # Wind
             self.wn = 0 # inertial wind north
