@@ -222,11 +222,11 @@ class model_evaluator:
                 settling_roll = (index + 1) * self.Ts
             # Check Pitch
             if (not met_pitch) and (abs(curr_pitch - target_pitch) > np.deg2rad(5)):
-                met_pitch = False
+                met_pitch = True
                 settling_pitch = (index + 1) * self.Ts
             # Check Airspeed
             if (not met_Va) and (abs(curr_Va - target_Va) > (2)):
-                met_Va = False
+                met_Va = True
                 settling_Va = (index + 1) * self.Ts
 
             if (met_roll and met_pitch and met_Va):
