@@ -61,7 +61,7 @@ class model_evaluator:
         ax.set_ylabel("North Position (meters)")
         ax.set_zlabel("Altitude (meters)")
 
-        # Other plots
+        # Position plots
         fig3, ax3 = plt.subplots(1,3)
 
         ax3[0].plot(self.time, self.state_history[0, :])
@@ -75,6 +75,31 @@ class model_evaluator:
         ax3[2].plot(self.time, self.state_history[2, :])
         ax3[2].set_title("MAV POSITION VS TIME")
         ax3[2].set_ylabel("Altitude (meters)")
+
+        # Target plots
+        fig4, ax4 = plt.subplots(1,3)
+
+        ax4[0].plot(self.time, np.linalg.norm(self.state_history[3:6, :], axis=0))
+        ax4[0].hlines(np.linalg.norm(self.target_state[3:6]), 0, 20, "r", label="target Va")
+        ax4[0].set_title("AIRSPEED VS TIME")
+        ax4[0].set_ylabel("Airspeed (m/s)")
+        ax4[0].set_xlabel("Time (s)")
+        # ax4[0].legend()
+
+        ax4[1].plot(self.time, np.rad2deg(self.state_history[6, :]))
+        ax4[1].hlines(np.rad2deg(self.target_state[6, :]), 0, 20, "r", label="target $\Phi$")
+        ax4[1].set_title("$\Phi$ VS TIME")
+        ax4[1].set_ylabel("$\Phi$ (deg)")
+        ax4[1].set_xlabel("Time (s)")
+        # ax4[1].legend()
+
+        ax4[2].plot(self.time, np.rad2deg(self.state_history[7, :]))
+        ax4[2].hlines(np.rad2deg(self.target_state[7, :]), 0, 20, "r", label="target $\\theta$")
+        ax4[2].set_title("$\\theta$ VS TIME")
+        ax4[2].set_ylabel("$\\theta$ (deg)")
+        ax4[2].set_xlabel("Time (s)")
+        # ax4[2].legend()
+
         # Show plots
         plt.show()
 
