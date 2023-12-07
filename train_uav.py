@@ -20,28 +20,39 @@ sim_opt.display_graphs = False
 sim_opt.use_kf = False
 sim_opt.wind_gust = False
 
+time_steps = 250_000
+LOAD_MODEL = False
+TRAIN_MODEL = True
+
 # Instantiate Sampler
 sampler = Sampler()
 
-# Instantiate Environment
-myEnv_id = 'UAV_testbed/UAV_Environment_v0' # It is best practice to have a space name and version number.
-gym.envs.registration.register(
-    id=myEnv_id,
-    entry_point=UAVStallEnv,
-    max_episode_steps=2000, # Customize to your needs.
-    reward_threshold=500 # Customize to your needs.
-)
-vec_env = make_vec_env(myEnv_id, n_envs=4, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
 
+## Train or Load Agent
 
-# ## Train Agent
-model = PPO("MlpPolicy", vec_env, verbose=1)
-model.learn(total_timesteps=2_000)
-model.save("./models/PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
+if (TRAIN_MODEL):
+    # Instantiate Environment
+    myEnv_id = 'UAV_testbed/UAV_Environment_v0' # It is best practice to have a space name and version number.
+    gym.envs.registration.register(
+        id=myEnv_id,
+        entry_point=UAVStallEnv,
+        max_episode_steps=2000, # Customize to your needs.
+        reward_threshold=2500 # Customize to your needs.
+    )
+    vec_env = make_vec_env(myEnv_id, n_envs=8, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
 
-del model
+    # Declare model and train
+    model = PPO("MlpPolicy", vec_env, verbose=1, device="cuda")
+    model.learn(total_timesteps=time_steps)
+    model.save("./models/PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
 
-model = PPO.load("./models/PPO_AttitudeController")
+if (LOAD_MODEL and TRAIN_MODEL):
+    # Delete model
+    del model
+
+if (LOAD_MODEL):
+    # Load model
+    model = PPO.load("./models/PPO_AttitudeController_" + str(time_steps) + "timesteps")
 
 
 ## Evaluate Trained Agent
