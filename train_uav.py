@@ -31,7 +31,7 @@ gym.envs.registration.register(
     max_episode_steps=2000, # Customize to your needs.
     reward_threshold=500 # Customize to your needs.
 )
-vec_env = make_vec_env(myEnv_id, n_envs=4, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
+vec_env = make_vec_env(myEnv_id, n_envs=8, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
 
 
 ## Train Agent
@@ -68,7 +68,7 @@ for i in range(2_000):
     obs, reward, done, info, flags = eval_env.step(action)
 
     # Update Evaluator
-    evaluator.update(action, obs)
+    evaluator.update(action, obs, reward)
 
 ## Outputs 
 # Controller Metrics
@@ -85,7 +85,7 @@ print("The mean of the control variation:", evaluation[4])
 print("\n ----------------------------------------------- \n")
 print("INITIALIZATIONS:\n")
 print("(North, East, Alt, u, v, w, Phi, Theta, Psi, P, Q, R)")
-print("The initial state is:", initial_state)
+print("The initial state is:", initial_state, "\n")
 print("The target state is:", target_state.flatten())
 
 # Plot the run!
