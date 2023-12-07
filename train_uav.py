@@ -41,10 +41,13 @@ if (TRAIN_MODEL):
     )
     vec_env = make_vec_env(myEnv_id, n_envs=8, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
 
-    # Declare model and train
-    model = PPO("MlpPolicy", vec_env, verbose=1, device="cuda")
-    model.learn(total_timesteps=time_steps)
-    model.save("./models/PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
+
+## Train Agent
+# Check this out for GPU usage: https://github.com/DLR-RM/stable-baselines3/issues/350
+# To use tensorboard, have tensorflow installed, paste this at the end of the PPO line: tensorboard_log="log", and run: tensorboard --logdir ./log/  in a seperate terminal
+model = PPO("MlpPolicy", vec_env, verbose=1, device="cpu")
+model.learn(total_timesteps=2_000)
+model.save("./models/PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
 
 if (LOAD_MODEL and TRAIN_MODEL):
     # Delete model
@@ -98,4 +101,4 @@ print("The initial state is:", initial_state)
 print("The target state is:", target_state.flatten())
 
 # Plot the run!
-evaluator.plot_run()
+# evaluator.plot_run()

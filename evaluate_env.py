@@ -18,11 +18,13 @@ class model_evaluator:
         # Zero the episode history, set initial state
         self.state_history = np.zeros((12, self.max_steps+1))
         self.action_history = np.zeros((4, self.max_steps))
+        self.reward_history = np.zeros((self.max_steps))
         self.state_history[:, 0] = self.initial_state
 
-    def update(self, action, obs):
+    def update(self, action, obs, reward=None):
         self.action_history[:, self.idx] = action
         self.state_history[:, self.idx+1] = obs
+        self.reward_history[self.idx] = reward
 
         self.idx = self.idx+1
 
@@ -103,6 +105,14 @@ class model_evaluator:
         ax4[2].set_ylabel("$\\theta$ (deg)")
         ax4[2].set_xlabel("Time (s)")
         # ax4[2].legend()
+
+        # Plot rewards
+        fig5, ax5 = plt.subplots()
+
+        ax5.plot(self.time[:-1], self.reward_history)
+        ax5.set_xlabel("Time (s)")
+        ax5.set_ylabel("Rewards")
+        ax5.set_title("Reward History")
 
         # Show plots
         plt.show()
