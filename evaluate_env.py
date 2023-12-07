@@ -21,7 +21,7 @@ class model_evaluator:
         self.reward_history = np.zeros((self.max_steps))
         self.state_history[:, 0] = self.initial_state
 
-    def update(self, action, obs, reward=None):
+    def update(self, action, obs, reward):
         self.action_history[:, self.idx] = action
         self.state_history[:, self.idx+1] = obs
         self.reward_history[self.idx] = reward
@@ -29,86 +29,91 @@ class model_evaluator:
         self.idx = self.idx+1
 
     # Plots the run of the aircraft
-    def plot_run(self):
+    def plot_run(self, guide={"control":True, "trajectory":True, "angular rates":True, "response":True, "reward":True}):
         # Inputs
-        fig1, axes2 = plt.subplots(2,2)
+        if guide["control"]:
+            fig1, axes2 = plt.subplots(2,2)
 
-        axes2[0,0].plot(self.time[:-1], self.action_history[0, :])
-        axes2[0,0].set_title("ELEVATOR")
-        axes2[0,0].set_xlabel("Time (seconds)")
-        axes2[0,0].set_ylabel("Deflection (degrees)")
+            axes2[0,0].plot(self.time[:-1], self.action_history[0, :])
+            axes2[0,0].set_title("ELEVATOR")
+            axes2[0,0].set_xlabel("Time (seconds)")
+            axes2[0,0].set_ylabel("Deflection (degrees)")
 
-        axes2[1,0].plot(self.time[:-1], self.action_history[1, :])
-        axes2[1,0].set_title("AILERON")
-        axes2[1,0].set_xlabel("Time (seconds)")
-        axes2[1,0].set_ylabel("Deflection (degrees)")
+            axes2[1,0].plot(self.time[:-1], self.action_history[1, :])
+            axes2[1,0].set_title("AILERON")
+            axes2[1,0].set_xlabel("Time (seconds)")
+            axes2[1,0].set_ylabel("Deflection (degrees)")
 
-        axes2[0,1].plot(self.time[:-1], self.action_history[3, :])
-        axes2[0,1].set_title("THROTTLE")
-        axes2[0,1].set_xlabel("Time (seconds)")
-        axes2[0,1].set_ylabel("Level (percent)")
+            axes2[0,1].plot(self.time[:-1], self.action_history[3, :])
+            axes2[0,1].set_title("THROTTLE")
+            axes2[0,1].set_xlabel("Time (seconds)")
+            axes2[0,1].set_ylabel("Level (percent)")
 
-        axes2[1,1].plot(self.time[:-1], self.action_history[2, :])
-        axes2[1,1].set_title("RUDDER")
-        axes2[1,1].set_xlabel("Time (seconds)")
-        axes2[1,1].set_ylabel("Deflection (degrees)")
+            axes2[1,1].plot(self.time[:-1], self.action_history[2, :])
+            axes2[1,1].set_title("RUDDER")
+            axes2[1,1].set_xlabel("Time (seconds)")
+            axes2[1,1].set_ylabel("Deflection (degrees)")
 
         # Plane tracking
-        fig2 = plt.figure()
+        if guide["trajectory"]:
+            fig2 = plt.figure()
 
-        ax = fig2.add_subplot(2, 2, (1,4), projection='3d')
-        ax.plot3D(self.state_history[1, :], self.state_history[0, :], self.state_history[2, :])
-        ax.set_title("MAV POSITION TRACK")
-        ax.set_xlabel("East Position (meters)")
-        ax.set_ylabel("North Position (meters)")
-        ax.set_zlabel("Altitude (meters)")
+            ax = fig2.add_subplot(2, 2, (1,4), projection='3d')
+            ax.plot3D(self.state_history[1, :], self.state_history[0, :], self.state_history[2, :])
+            ax.set_title("MAV POSITION TRACK")
+            ax.set_xlabel("East Position (meters)")
+            ax.set_ylabel("North Position (meters)")
+            ax.set_zlabel("Altitude (meters)")
 
         # Position plots
-        fig3, ax3 = plt.subplots(1,3)
+        if guide["angular rates"]:
+            fig3, ax3 = plt.subplots(1,3)
 
-        ax3[0].plot(self.time, self.state_history[0, :])
-        ax3[0].set_title("MAV POSITION VS TIME")
-        ax3[0].set_ylabel("North Position (meters)")
+            ax3[0].plot(self.time, np.rad2deg(self.state_history[9, :]))
+            ax3[0].set_title("MAV P VS TIME")
+            ax3[0].set_ylabel("P (deg/s)")
 
-        ax3[1].plot(self.time, self.state_history[1, :])
-        ax3[1].set_title("MAV POSITION VS TIME")
-        ax3[1].set_ylabel("East Position (meters)")
+            ax3[1].plot(self.time, np.rad2deg(self.state_history[10, :]))
+            ax3[1].set_title("MAV Q VS TIME")
+            ax3[1].set_ylabel("Q (deg/s)")
 
-        ax3[2].plot(self.time, self.state_history[2, :])
-        ax3[2].set_title("MAV POSITION VS TIME")
-        ax3[2].set_ylabel("Altitude (meters)")
+            ax3[2].plot(self.time, np.rad2deg(self.state_history[11, :]))
+            ax3[2].set_title("MAV R VS TIME")
+            ax3[2].set_ylabel("R (deg/s)")
 
         # Target plots
-        fig4, ax4 = plt.subplots(1,3)
+        if guide["response"]:
+            fig4, ax4 = plt.subplots(1,3)
 
-        ax4[0].plot(self.time, np.linalg.norm(self.state_history[3:6, :], axis=0))
-        ax4[0].hlines(np.linalg.norm(self.target_state[3:6]), 0, 20, "r", label="target Va")
-        ax4[0].set_title("AIRSPEED VS TIME")
-        ax4[0].set_ylabel("Airspeed (m/s)")
-        ax4[0].set_xlabel("Time (s)")
-        # ax4[0].legend()
+            ax4[0].plot(self.time, np.linalg.norm(self.state_history[3:6, :], axis=0))
+            ax4[0].hlines(np.linalg.norm(self.target_state[3:6]), 0, 20, "r", label="target Va")
+            ax4[0].set_title("AIRSPEED VS TIME")
+            ax4[0].set_ylabel("Airspeed (m/s)")
+            ax4[0].set_xlabel("Time (s)")
+            # ax4[0].legend()
 
-        ax4[1].plot(self.time, np.rad2deg(self.state_history[6, :]))
-        ax4[1].hlines(np.rad2deg(self.target_state[6, :]), 0, 20, "r", label="target $\Phi$")
-        ax4[1].set_title("$\Phi$ VS TIME")
-        ax4[1].set_ylabel("$\Phi$ (deg)")
-        ax4[1].set_xlabel("Time (s)")
-        # ax4[1].legend()
+            ax4[1].plot(self.time, np.rad2deg(self.state_history[6, :]))
+            ax4[1].hlines(np.rad2deg(self.target_state[6, :]), 0, 20, "r", label="target $\Phi$")
+            ax4[1].set_title("$\Phi$ VS TIME")
+            ax4[1].set_ylabel("$\Phi$ (deg)")
+            ax4[1].set_xlabel("Time (s)")
+            # ax4[1].legend()
 
-        ax4[2].plot(self.time, np.rad2deg(self.state_history[7, :]))
-        ax4[2].hlines(np.rad2deg(self.target_state[7, :]), 0, 20, "r", label="target $\\theta$")
-        ax4[2].set_title("$\\theta$ VS TIME")
-        ax4[2].set_ylabel("$\\theta$ (deg)")
-        ax4[2].set_xlabel("Time (s)")
-        # ax4[2].legend()
+            ax4[2].plot(self.time, np.rad2deg(self.state_history[7, :]))
+            ax4[2].hlines(np.rad2deg(self.target_state[7, :]), 0, 20, "r", label="target $\\theta$")
+            ax4[2].set_title("$\\theta$ VS TIME")
+            ax4[2].set_ylabel("$\\theta$ (deg)")
+            ax4[2].set_xlabel("Time (s)")
+            # ax4[2].legend()
 
         # Plot rewards
-        fig5, ax5 = plt.subplots()
+        if guide["reward"]:
+            fig5, ax5 = plt.subplots()
 
-        ax5.plot(self.time[:-1], self.reward_history)
-        ax5.set_xlabel("Time (s)")
-        ax5.set_ylabel("Rewards")
-        ax5.set_title("Reward History")
+            ax5.plot(self.time[:-1], self.reward_history)
+            ax5.set_xlabel("Time (s)")
+            ax5.set_ylabel("Rewards")
+            ax5.set_title("Reward History")
 
         # Show plots
         plt.show()

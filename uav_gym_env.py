@@ -213,7 +213,10 @@ class UAVStallEnv(gym.Env):
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
                         self.command_cost(self.actions_R) + self.command_cost(self.actions_T)
 
-        r_delta = saturate(tot_comm_cost / 80, 0, 0.1)
+        # r_delta = saturate(tot_comm_cost / 80, 0, 0.1)
+        # r_delta = 0
+        # Penalize roll
+        r_delta = saturate(abs(state.p)/(3*np.pi), 0, 0.1)
 
         total_reward = -(r_phi + r_theta + r_Va + r_delta)
 
