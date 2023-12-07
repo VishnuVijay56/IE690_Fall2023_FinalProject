@@ -39,11 +39,11 @@ vec_env = make_vec_env(myEnv_id, n_envs=4, seed=0, env_kwargs={"sim_options":sim
 # To use tensorboard, have tensorflow installed, paste this at the end of the PPO line: tensorboard_log="log", and run: tensorboard --logdir ./log/  in a seperate terminal
 model = PPO("MlpPolicy", vec_env, verbose=1, device="cpu")
 model.learn(total_timesteps=2_000)
-model.save("./models/PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
+model.save("./models/Brians_PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
 
 del model
-
-model = PPO.load("./models/PPO_AttitudeController")
+file_name = "Brians_PPO_AttitudeController_2000000timesteps"
+model = PPO.load("./models/" + file_name)
 
 
 ## Evaluate Trained Agent

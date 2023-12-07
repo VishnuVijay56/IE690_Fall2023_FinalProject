@@ -191,7 +191,7 @@ class UAVStallEnv(gym.Env):
             #reward -= 100
             failure_flag = 1
         elif (is_succ): # Reached target
-            reward -= 10
+            reward += 10
             is_done = True
 
         return self.mav_state.get_12D_state().flatten(), reward, is_done, is_truncated, {"Flags":failure_flag}
