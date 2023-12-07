@@ -37,13 +37,13 @@ vec_env = make_vec_env(myEnv_id, n_envs=4, seed=0, env_kwargs={"sim_options":sim
 ## Train Agent
 # Check this out for GPU usage: https://github.com/DLR-RM/stable-baselines3/issues/350
 # To use tensorboard, have tensorflow installed, paste this at the end of the PPO line: tensorboard_log="log", and run: tensorboard --logdir ./log/  in a seperate terminal
-model = PPO("MlpPolicy", vec_env, verbose=1, device="cpu")
-model.learn(total_timesteps=2_000)
-model.save("./models/Brians_PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
+model = PPO("MlpPolicy", vec_env, verbose=1, device="cuda", tensorboard_log="log")
+model.learn(total_timesteps=100_000)
+# model.save("./models/Brians_PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
 
-del model
-file_name = "Brians_PPO_AttitudeController_2000000timesteps"
-model = PPO.load("./models/" + file_name)
+# del model
+# file_name = "Brians_PPO_AttitudeController_2000000timesteps"
+# model = PPO.load("./models/" + file_name)
 
 
 ## Evaluate Trained Agent
@@ -89,4 +89,4 @@ print("The initial state is:", initial_state)
 print("The target state is:", target_state.flatten())
 
 # Plot the run!
-# evaluator.plot_run()
+evaluator.plot_run()
