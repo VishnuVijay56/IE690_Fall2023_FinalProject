@@ -188,10 +188,10 @@ class UAVStallEnv(gym.Env):
             is_done = True
         elif (any(abs(self.mav_state.get_12D_state()) > 1e8)): # Approaching Numerical error
             is_done = True
-            #reward -= 100
+            reward -= 50
             failure_flag = 1
         elif (is_succ): # Reached target
-            reward -= 10
+            reward += 100
             is_done = True
 
         return self.mav_state.get_12D_state().flatten(), reward, is_done, is_truncated, {"Flags":failure_flag}
@@ -203,17 +203,17 @@ class UAVStallEnv(gym.Env):
     #           Action to be taken by the UAV
     # Return: Sum of negative cost of roll, pitch, velocity, and actuator command
     def cost_function(self, state : MAV_State, action : np.array):
-        r_phi = saturate(abs(state.phi[0] - self.target_state[6]) / 3.3, 0, 0.3)
+        r_phi = saturate(abs(state.phi[0] - self.target_state[6]) / 3.3, 0, 0.33)
 
-        r_theta = saturate(abs(state.theta[0] - self.target_state[7]) / 2.25, 0, 0.3)
+        r_theta = saturate(abs(state.theta[0] - self.target_state[7]) / 2.25, 0, 0.33)
 
         desired_Va = np.sqrt((self.target_state[3])**2 + (self.target_state[4])**2 + (self.target_state[5])**2)
-        r_Va = saturate(abs(state.Va[0] - desired_Va), 0, 0.3)
+        r_Va = saturate(abs(state.Va[0] - desired_Va), 0, 0.33)
 
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
                         self.command_cost(self.actions_R) + self.command_cost(self.actions_T)
 
-        r_delta = saturate(tot_comm_cost / 80, 0, 0.1)
+        r_delta = saturate(tot_comm_cost / 80, 0, 0.01)
 
         total_reward = -(r_phi + r_theta + r_Va + r_delta)
 
