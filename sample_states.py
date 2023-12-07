@@ -46,7 +46,7 @@ class Sampler:
             
             alpha = np.deg2rad(52 * np.random.rand() - 26)
             beta = np.deg2rad(52 * np.random.rand() - 26)
-            Va = 18 * np.random.rand() + 12
+            Va = 18 * np.random.rand() + 15
 
         elif self.curriculum_level == 2:
             phi = np.deg2rad(150 * np.random.rand() - 75)
@@ -59,11 +59,11 @@ class Sampler:
             
             alpha = np.deg2rad(26 * np.random.rand() - 13)
             beta = np.deg2rad(26 * np.random.rand() - 13)
-            Va = 12 * np.random.rand() + 15
+            Va = 12 * np.random.rand() + 18
 
-        else:
-            phi = np.deg2rad(40 * np.random.rand() - 20)
-            theta = np.deg2rad(24 * np.random.rand() - 12)
+        elif self.curriculum_level == 1:
+            phi = np.deg2rad(20 * np.random.rand() - 10)
+            theta = np.deg2rad(18 * np.random.rand() - 9)
             psi = np.deg2rad(30 * np.random.rand() - 15)
             
             p = np.deg2rad(30 * np.random.rand() - 15)
@@ -72,8 +72,21 @@ class Sampler:
             
             alpha = np.deg2rad(14 * np.random.rand() - 7)
             beta = np.deg2rad(14 * np.random.rand() - 7)
-            Va = 6 * np.random.rand() + 18
+            Va = 6 * np.random.rand() + 21
+        
+        else:
+            phi = np.deg2rad(2 * np.random.rand() - 1)
+            theta = np.deg2rad(2 * np.random.rand() - 1)
+            psi = np.deg2rad(2 * np.random.rand() - 1)
             
+            p = np.deg2rad(2 * np.random.rand() - 1)
+            q = np.deg2rad(2 * np.random.rand() - 1)
+            r = np.deg2rad(2 * np.random.rand() - 1)
+            
+            alpha = np.deg2rad(2 * np.random.rand() - 1)
+            beta = np.deg2rad(2 * np.random.rand() - 1)
+            Va = 2 * np.random.rand() + 24
+
         new_state = MAV_State(0, phi, theta, psi, p, q, r, Va)
         new_state.alpha = alpha
         new_state.beta = beta
@@ -98,10 +111,15 @@ class Sampler:
             theta = np.deg2rad(50 * np.random.rand() - 25)
             Va = 12 * np.random.rand() + 15
 
-        else: 
+        elif self.curriculum_level == 1: 
             phi = np.deg2rad(40 * np.random.rand() - 20)
             theta = np.deg2rad(24 * np.random.rand() - 12)
             Va = 6 * np.random.rand() + 18
+        
+        else:
+            phi = np.deg2rad(2 * np.random.rand() - 1)
+            theta = np.deg2rad(2 * np.random.rand() - 1)
+            Va = 2 * np.random.rand() + 24
 
         new_target = MAV_State()
         new_target.phi = phi
