@@ -203,7 +203,7 @@ class model_evaluator:
         roll = self.state_history[6, :]
         pitch = self.state_history[7, :]
         state_history = np.array([velocity, roll, pitch])
-        target_state = np.array((np.linalg.norm(self.target_state[3:6]), self.target_state[6], self.target_state[7]))
+        target_state = np.array((np.linalg.norm(self.target_state[3:6]), self.target_state[6][0], self.target_state[7][0]))
         len_arg = len(target_state)
 
         # Function for finding zero crossings
