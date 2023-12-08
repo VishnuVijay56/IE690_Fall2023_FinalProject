@@ -203,24 +203,36 @@ class UAVStallEnv(gym.Env):
     #           Action to be taken by the UAV
     # Return: Sum of negative cost of roll, pitch, velocity, and actuator command
     def cost_function(self, state : MAV_State, action : np.array):
-        r_phi = saturate(abs(state.phi[0] - self.target_state[6])/50, 0, 0.5)
+        d2r =np.pi/180
 
-        r_theta = saturate(abs(state.theta[0] - self.target_state[7])/25, 0, 0.25)
+        # r_phi = saturate(abs(state.phi[0] - self.target_state[6])/, 0, 3)
+        r_phi = self.calculate_reward(abs(state.phi[0] - self.target_state[6]), window=60*d2r, magnitude=0.4)
+
+        # r_theta = saturate(abs(state.theta[0] - self.target_state[7])/25, 0, 2.5)
+        r_theta = self.calculate_reward(abs(state.theta[0] - self.target_state[7]), window=60*d2r, magnitude=0.225)
 
         desired_Va = np.sqrt((self.target_state[3])**2 + (self.target_state[4])**2 + (self.target_state[5])**2)
-        r_Va = saturate(abs(state.Va[0] - desired_Va)/25, 0, 0.25)
+        # r_Va = saturate(abs(state.Va[0] - desired_Va)/25, 0, 2)
+        r_Va = self.calculate_reward(abs(state.Va[0] - desired_Va), window=8, magnitude=0.225)
 
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
                         self.command_cost(self.actions_R) + self.command_cost(self.actions_T)
 
-        # r_delta = saturate(tot_comm_cost / 80, 0, 0.1)
-        r_delta = 0
-        # Penalize roll
-        # r_delta = saturate(abs(state.p)/(np.pi), 0, 0.3)
+        # r_delta = saturate(tot_comm_cost / 80, 0, 1)
+        r_delta = self.calculate_reward(tot_comm_cost, window=6, magnitude=0.1)
 
-        total_reward = -(r_phi + r_theta + r_Va + r_delta)
+        # Penalize Rates
+        rates = abs(np.linalg.norm(np.array((state.p, state.q, state.r))))
+        # r_rates = saturate(abs(rates) / 80, 0, 1.5)
+        r_rates = self.calculate_reward(rates, window=30*d2r, magnitude=0.5)
+
+        total_reward = -(r_phi + r_theta + r_Va + r_delta + r_rates)
 
         return total_reward
+    
+    def calculate_reward(self, value, window, magnitude):
+        return saturate(value/(window/magnitude), 0, magnitude)
+
 
 
     # Computes sum of the absolute differences between consecutive elements of a set

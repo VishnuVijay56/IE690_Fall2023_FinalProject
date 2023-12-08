@@ -37,22 +37,26 @@ class model_evaluator:
             axes2[0,0].plot(self.time[:-1], self.action_history[0, :])
             axes2[0,0].set_title("ELEVATOR")
             axes2[0,0].set_xlabel("Time (seconds)")
-            axes2[0,0].set_ylabel("Deflection (degrees)")
+            axes2[0,0].set_ylabel("Deflection")
+            axes2[0,0].set_ylim([-1, 1])
 
             axes2[1,0].plot(self.time[:-1], self.action_history[1, :])
             axes2[1,0].set_title("AILERON")
             axes2[1,0].set_xlabel("Time (seconds)")
-            axes2[1,0].set_ylabel("Deflection (degrees)")
+            axes2[1,0].set_ylabel("Deflection")
+            axes2[1,0].set_ylim([-1, 1])
 
             axes2[0,1].plot(self.time[:-1], self.action_history[3, :])
             axes2[0,1].set_title("THROTTLE")
             axes2[0,1].set_xlabel("Time (seconds)")
-            axes2[0,1].set_ylabel("Level (percent)")
+            axes2[0,1].set_ylabel("Level")
+            axes2[0,1].set_ylim([-1, 1])
 
             axes2[1,1].plot(self.time[:-1], self.action_history[2, :])
             axes2[1,1].set_title("RUDDER")
             axes2[1,1].set_xlabel("Time (seconds)")
-            axes2[1,1].set_ylabel("Deflection (degrees)")
+            axes2[1,1].set_ylabel("Deflection")
+            axes2[1,1].set_ylim([-1, 1])
 
         # Plane tracking
         if guide["trajectory"]:
