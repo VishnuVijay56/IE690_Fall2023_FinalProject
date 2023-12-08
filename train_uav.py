@@ -31,17 +31,17 @@ gym.envs.registration.register(
     max_episode_steps=2000, # Customize to your needs.
     reward_threshold=500 # Customize to your needs.
 )
-vec_env = make_vec_env(myEnv_id, n_envs=8, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
+vec_env = make_vec_env(myEnv_id, n_envs=12, seed=0, env_kwargs={"sim_options":sim_opt, "sampler":sampler})
 
 
 ## Train Agent
 # Check this out for GPU usage: https://github.com/DLR-RM/stable-baselines3/issues/350
 # To use tensorboard, have tensorflow installed, paste this at the end of the PPO line: tensorboard_log="log", and run: tensorboard --logdir ./log/  in a seperate terminal
-model = PPO("MlpPolicy", vec_env, verbose=1, device="cuda", tensorboard_log="log")
-model.learn(total_timesteps=100_000)
+model = PPO("MlpPolicy", vec_env, verbose=1, device="cuda", tensorboard_log="./log/tests")
+model.learn(total_timesteps=1_000_000)
 # model.save("./models/Brians_PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps")
 
-# del model
+# del model(.venv) brian@brian-ROG-GU501GM:~/Desktop/IE_690/IE690_Fall2023_FinalProject$ python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
 # file_name = "Brians_PPO_AttitudeController_2000000timesteps"
 # model = PPO.load("./models/" + file_name)
 
