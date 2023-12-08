@@ -203,20 +203,20 @@ class UAVStallEnv(gym.Env):
     #           Action to be taken by the UAV
     # Return: Sum of negative cost of roll, pitch, velocity, and actuator command
     def cost_function(self, state : MAV_State, action : np.array):
-        r_phi = saturate(abs(state.phi[0] - self.target_state[6]) / 3.3, 0, 0.3)
+        r_phi = saturate(abs(state.phi[0] - self.target_state[6])/50, 0, 0.5)
 
-        r_theta = saturate(abs(state.theta[0] - self.target_state[7]) / 2.25, 0, 0.3)
+        r_theta = saturate(abs(state.theta[0] - self.target_state[7])/25, 0, 0.25)
 
         desired_Va = np.sqrt((self.target_state[3])**2 + (self.target_state[4])**2 + (self.target_state[5])**2)
-        r_Va = saturate(abs(state.Va[0] - desired_Va), 0, 0.3)
+        r_Va = saturate(abs(state.Va[0] - desired_Va)/25, 0, 0.25)
 
         tot_comm_cost = self.command_cost(self.actions_E) + self.command_cost(self.actions_A) + \
                         self.command_cost(self.actions_R) + self.command_cost(self.actions_T)
 
         # r_delta = saturate(tot_comm_cost / 80, 0, 0.1)
-        # r_delta = 0
+        r_delta = 0
         # Penalize roll
-        r_delta = saturate(abs(state.p)/(3*np.pi), 0, 0.1)
+        # r_delta = saturate(abs(state.p)/(np.pi), 0, 0.3)
 
         total_reward = -(r_phi + r_theta + r_Va + r_delta)
 

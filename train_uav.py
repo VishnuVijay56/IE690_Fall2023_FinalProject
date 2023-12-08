@@ -38,8 +38,8 @@ vec_env = make_vec_env(myEnv_id, n_envs=8, seed=0, env_kwargs={"sim_options":sim
 # Check this out for GPU usage: https://github.com/DLR-RM/stable-baselines3/issues/350
 # To use tensorboard, have tensorflow installed, paste this at the end of the PPO line: tensorboard_log="log", and run: tensorboard --logdir ./log/  in a seperate terminal
 model = PPO("MlpPolicy", vec_env, verbose=1, device="cpu")
-model.learn(total_timesteps=15_000_000)
-model.save("./models/Brians_PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps_prevent_roll")
+model.learn(total_timesteps=4_000_000)
+model.save("./models/Brians_PPO_AttitudeController_" + str(model._total_timesteps) + "timesteps_paper2rewards")
 
 # del model
 # file_name = "Brians_PPO_AttitudeController_2000000timesteps_div_vel_25"
